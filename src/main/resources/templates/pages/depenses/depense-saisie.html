@@ -104,7 +104,7 @@
                                 <div class="col-md-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><strong>Total Général:</strong></h5>
-                                        <h4 class="mb-0 text-primary"><strong id="montantTotal">0.00 Ar</strong></h4>
+                                        <h4 class="mb-0 text-primary"><strong id="montantTotal">0,00 Ar</strong></h4>
                                     </div>
                                 </div>
                             </div>
@@ -251,6 +251,17 @@
         const categoriesDetailData = /*[[${categoriesDetail}]]*/ [];
         const unitesData = /*[[${unites}]]*/ [];
         const categoriesData = /*[[${categories}]]*/ [];
+        
+        // Fonction pour formater les montants
+        function formatMontant(montant) {
+            const arrondi = parseFloat(montant).toFixed(2);
+            const [entier, decimal] = arrondi.split('.');
+            
+            // Ajouter les séparateurs de milliers
+            const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            
+            return `${entierFormate},${decimal} Ar`;
+        }
         
         // Fonction pour convertir les fractions en décimales
         function parseFraction(input) {
@@ -460,7 +471,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label-sm">Total</label>
-                            <div class="total-ligne fs-6 text-end" id="total-${detailCounter}">0.00 Ar</div>
+                            <div class="total-ligne fs-6 text-end" id="total-${detailCounter}">0,00 Ar</div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label-sm">Désignation</label>
@@ -491,8 +502,7 @@
                 const qteValue = parseFraction(qteInput.value);
                 const puValue = parseFloat(puInput.value) || 0;
                 const total = qteValue * puValue;
-                totalDiv.textContent = total.toFixed(2) + ' Ar';
-                calculerTotalGlobal();
+                totalDiv.textContent = formatMontant(total);
                 calculerTotalGlobal();
             }
             
@@ -515,7 +525,7 @@
                 }
             });
             
-            document.getElementById('montantTotal').textContent = total.toFixed(2) + ' Ar';
+            document.getElementById('montantTotal').textContent = formatMontant(total);
             
             // Afficher/masquer le total global
             const totalGlobal = document.getElementById('totalGlobal');
