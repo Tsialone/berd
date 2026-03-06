@@ -95,7 +95,8 @@
                                       th:text="${depense.depenseDetails?.size() ?: 0}">0</span>
                             </td>
                             <td class="text-end fw-bold">
-                                <span th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
+                                <span data-montant th:attr="data-montant=${depense.montantTotal ?: 0}"
+                                      th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
@@ -117,7 +118,8 @@
                         <tr class="fw-bold bg-light">
                             <td colspan="6" class="text-end">Total général:</td>
                             <td class="text-end text-primary">
-                                <span th:text="${#numbers.formatDecimal(totalGeneral ?: 0, 1, 2)}">0.00</span> Ar
+                                <span data-montant th:attr="data-montant=${totalGeneral ?: 0}"
+                                      th:text="${#numbers.formatDecimal(totalGeneral ?: 0, 1, 2)}">0.00</span> Ar
                             </td>
                             <td></td>
                         </tr>
@@ -155,7 +157,8 @@
                             </div>
                             <div class="text-end">
                                 <div class="fw-bold text-primary">
-                                    <span th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
+                                    <span data-montant th:attr="data-montant=${depense.montantTotal ?: 0}"
+                                          th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
                                 </div>
                                 <div class="btn-group btn-group-sm mt-1">
                                     <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}" 
@@ -243,4 +246,25 @@
             vertical-align: middle;
         }
     </style>
+    
+    <script th:inline="javascript">
+        // Fonction pour formater les montants
+        function formatMontant(montant) {
+            const arrondi = parseFloat(montant).toFixed(2);
+            const [entier, decimal] = arrondi.split('.');
+            
+            // Ajouter les séparateurs de milliers
+            const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            
+            return `${entierFormate},${decimal}`;
+        }
+        
+        // Formater tous les montants au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[data-montant]').forEach(el => {
+                const montant = parseFloat(el.getAttribute('data-montant'));
+                el.textContent = formatMontant(montant) + ' Ar';
+            });
+        });
+    </script>
 </section>
