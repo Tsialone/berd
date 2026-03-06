@@ -12,13 +12,12 @@
                                 <div class="col-md-6 col-12">
                                     <div class="form-group">
                                         <label for="categorieDepense">Catégorie dépense</label>
-                                        <input list="categorieDepenseListe" id="categorieDepense" name="idCategorieDepense" 
-                                               class="form-control" placeholder="Sélectionner une catégorie" required>
-                                        <datalist id="categorieDepenseListe">
-                                            <option th:each="cat : ${categories}" 
-                                                    th:value="${cat.idCategorieDepense}" 
-                                                    th:text="${cat.libelle}"></option>
-                                        </datalist>
+                                        <input type="hidden" id="idCategorieDepense" name="idCategorieDepense" required>
+                                        <input type="text" id="categorieDepense" 
+                                               class="form-control" 
+                                               placeholder="Sélectionner une catégorie" 
+                                               autocomplete="off"
+                                               data-target="idCategorieDepense">
                                     </div>
                                 </div>
                                 
@@ -50,8 +49,18 @@
                                     </div>
                                 </div>
                             </div>
+                             <div class="d-flex justify-content-end gap-2">
+                            <button type="reset" class="btn btn-light-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Enregistrer
+                            </button>
                         </div>
+                        </div>
+                        
                     </div>
+                    
                 </div>
                 
                 <!-- Section Détails de dépense -->
@@ -87,22 +96,24 @@
                             <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mt-2">Aucun détail. Cliquez sur "Ajouter"</p>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Boutons de soumission -->
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="reset" class="btn btn-light-secondary">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i> Réinitialiser
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-1"></i> Enregistrer
-                            </button>
+                        
+                        <!-- Total global -->
+                        <div class="mt-3 pt-3 border-top" id="totalGlobal">
+                            <div class="row">
+                                <div class="col-md-8"></div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><strong>Total Général:</strong></h5>
+                                        <h4 class="mb-0 text-primary"><strong id="montantTotal">0.00 Ar</strong></h4>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                     
                 </div>
+                
+              
             </div>
         </div>
     </form>
@@ -178,6 +189,15 @@
             display: none;
         }
         
+        #totalGlobal {
+            display: none;
+        }
+        
+        .total-ligne {
+            font-weight: 600;
+            color: #435ebe;
+        }
+        
         .autocomplete-wrapper {
             position: relative;
         }
@@ -230,6 +250,39 @@
         // Injecter les données depuis le serveur
         const categoriesDetailData = /*[[${categoriesDetail}]]*/ [];
         const unitesData = /*[[${unites}]]*/ [];
+        const categoriesData = /*[[${categories}]]*/ [];
+        
+        // Fonction pour convertir les fractions en décimales
+        function parseFraction(input) {
+            if (!input || input.trim() === '') return 0;
+            
+            const str = input.trim();
+            
+            // Si c'est déjà un nombre décimal
+            if (!str.includes('/') && !str.includes(' ')) {
+                return parseFloat(str) || 0;
+            }
+            
+            // Cas: "1 1/2" (nombre mixte)
+            const mixedMatch = str.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+            if (mixedMatch) {
+                const whole = parseInt(mixedMatch[1]);
+                const numerator = parseInt(mixedMatch[2]);
+                const denominator = parseInt(mixedMatch[3]);
+                return whole + (numerator / denominator);
+            }
+            
+            // Cas: "1/2" (fraction simple)
+            const fractionMatch = str.match(/^(\d+)\/(\d+)$/);
+            if (fractionMatch) {
+                const numerator = parseInt(fractionMatch[1]);
+                const denominator = parseInt(fractionMatch[2]);
+                return numerator / denominator;
+            }
+            
+            // Sinon, essayer de parser comme nombre normal
+            return parseFloat(str) || 0;
+        }
         
         // Fonction pour créer un autocomplete
         function setupAutocomplete(input, data, valueField, labelField) {
@@ -243,29 +296,16 @@
             wrapper.appendChild(list);
             
             const targetClass = input.getAttribute('data-target');
-            const hiddenInput = document.querySelector('.' + targetClass);
+            const hiddenInput = document.getElementById(targetClass) || document.querySelector('.' + targetClass);
             
             let selectedIndex = -1;
             let filteredData = [];
             
-            input.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                selectedIndex = -1;
-                
-                if (!searchTerm) {
-                    list.classList.remove('show');
-                    hiddenInput.value = '';
-                    return;
-                }
-                
-                // Filtre LIKE (recherche partielle)
-                filteredData = data.filter(item => 
-                    item[labelField].toLowerCase().includes(searchTerm)
-                );
-                
+            // Fonction pour afficher les résultats
+            function showResults(items) {
+                filteredData = items;
                 if (filteredData.length === 0) {
                     list.classList.remove('show');
-                    hiddenInput.value = '';
                     return;
                 }
                 
@@ -287,6 +327,38 @@
                         list.classList.remove('show');
                     });
                 });
+            }
+            
+            // Au focus, afficher toutes les options
+            input.addEventListener('focus', function() {
+                if (this.value.trim() === '') {
+                    showResults(data);
+                }
+            });
+            
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                selectedIndex = -1;
+                
+                if (!searchTerm) {
+                    // Si vide, afficher tout
+                    showResults(data);
+                    hiddenInput.value = '';
+                    return;
+                }
+                
+                // Filtre LIKE (recherche partielle)
+                const filtered = data.filter(item => 
+                    item[labelField].toLowerCase().includes(searchTerm)
+                );
+                
+                if (filtered.length === 0) {
+                    list.classList.remove('show');
+                    hiddenInput.value = '';
+                    return;
+                }
+                
+                showResults(filtered);
             });
             
             // Navigation au clavier
@@ -371,8 +443,9 @@
                             <label class="form-label-sm">Qté</label>
                             <input type="text" 
                                    name="details[${detailCounter}].qte" 
-                                   class="form-control form-control-sm text-center" 
-                                   placeholder="0">
+                                   class="form-control form-control-sm text-center qte-input" 
+                                   placeholder="0 ou 1/2"
+                                   title="Ex: 1, 0.5, 1/2, 1 1/4">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label-sm">Prix unit.</label>
@@ -385,7 +458,11 @@
                                 <span class="input-group-text">Ar</span>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
+                            <label class="form-label-sm">Total</label>
+                            <div class="total-ligne fs-6 text-end" id="total-${detailCounter}">0.00 Ar</div>
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label-sm">Désignation</label>
                             <input type="text" 
                                    name="details[${detailCounter}].designation" 
@@ -405,7 +482,45 @@
             setupAutocomplete(catInput, categoriesDetailData, 'idCategorieDepenseDetail', 'libelle');
             setupAutocomplete(uniteInput, unitesData, 'idUnite', 'libelle');
             
+            // Ajouter les événements pour calculer le total de la ligne
+            const qteInput = div.querySelector('.qte-input');
+            const puInput = div.querySelector('input[name*=".pu"]');
+            const totalDiv = div.querySelector(`#total-${detailCounter}`);
+            
+            function calculerTotalLigne() {
+                const qteValue = parseFraction(qteInput.value);
+                const puValue = parseFloat(puInput.value) || 0;
+                const total = qteValue * puValue;
+                totalDiv.textContent = total.toFixed(2) + ' Ar';
+                calculerTotalGlobal();
+                calculerTotalGlobal();
+            }
+            
+            qteInput.addEventListener('input', calculerTotalLigne);
+            puInput.addEventListener('input', calculerTotalLigne);
+            
             updateCompteur();
+        }
+        
+        function calculerTotalGlobal() {
+            let total = 0;
+            document.querySelectorAll('.detail-item').forEach(item => {
+                const qteInput = item.querySelector('.qte-input');
+                const puInput = item.querySelector('input[name*=".pu"]');
+                
+                if (qteInput && puInput) {
+                    const qte = parseFraction(qteInput.value);
+                    const pu = parseFloat(puInput.value) || 0;
+                    total += (qte * pu);
+                }
+            });
+            
+            document.getElementById('montantTotal').textContent = total.toFixed(2) + ' Ar';
+            
+            // Afficher/masquer le total global
+            const totalGlobal = document.getElementById('totalGlobal');
+            const container = document.getElementById('detailsContainer');
+            totalGlobal.style.display = container.children.length > 0 ? 'block' : 'none';
         }
 
         function supprimerLigne(id) {
@@ -431,6 +546,7 @@
                 });
                 updateCheckAll();
                 checkEmptyState();
+                calculerTotalGlobal();
                 updateCompteur();
             }
         }
@@ -467,6 +583,31 @@
         }
 
         window.addEventListener('DOMContentLoaded', function() {
+            // Définir la date du jour par défaut
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const dateTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('dateDepense').value = dateTimeString;
+            
+            // Initialiser l'autocomplete pour la catégorie dépense principale
+            const categorieInput = document.getElementById('categorieDepense');
+            setupAutocomplete(categorieInput, categoriesData, 'idCategorieDepense', 'libelle');
+            // Convertir les fractions avant soumission
+            document.getElementById('depenseForm').addEventListener('submit', function(e) {
+                const qteInputs = document.querySelectorAll('.qte-input');
+                qteInputs.forEach(input => {
+                    if (input.value.trim() !== '') {
+                        const decimalValue = parseFraction(input.value);
+                        input.value = decimalValue;
+                    }
+                });
+            });
+            
+            
             ajouterLigne();
         });
     </script>
