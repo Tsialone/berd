@@ -68,14 +68,34 @@ public class DepenseService {
         // Traiter les détails
         if (form.getDetails() != null && !form.getDetails().isEmpty()) {
             List<DepenseDetail> details = new ArrayList<>();
+            if (form.getDetails().isEmpty()) {
+                throw new IllegalArgumentException("Au moins un détail de dépense est requis");
+            }
             
+            int ligneIndex = 1;
             for (DepenseDetailForm detailForm : form.getDetails()) {
-                // Valider les champs obligatoires
-                if (detailForm.getIdCategorieDetail() == null || 
-                    detailForm.getIdUnite() == null ||
-                    detailForm.getQte() == null ||
-                    detailForm.getPu() == null) {
-                    continue; // Ignorer les lignes incomplètes
+                // Valider les champs obligatoires avec messages détaillés
+                List<String> champsManquants = new ArrayList<>();
+                
+                if (detailForm.getIdCategorieDetail() == null) {
+                    champsManquants.add("catégorie détail");
+                }
+                if (detailForm.getIdUnite() == null) {
+                    champsManquants.add("unité");
+                }
+                if (detailForm.getQte() == null) {
+                    champsManquants.add("quantité");
+                }
+                if (detailForm.getPu() == null) {
+                    champsManquants.add("prix unitaire");
+                }
+                
+                
+                if (!champsManquants.isEmpty()) {
+                    throw new IllegalArgumentException(
+                        "Ligne " + ligneIndex + " - Champ(s) obligatoire(s) manquant(s): " + 
+                        String.join(", ", champsManquants)
+                    );
                 }
                 
                 // Récupérer les entités liées
@@ -94,10 +114,14 @@ public class DepenseService {
                 detail.setQte(detailForm.getQte());
                 
                 detail.setPu(detailForm.getPu());
+                if (detailForm.getDesignation() == null || detailForm.getDesignation().trim().isEmpty()) {
+                    detailForm.setDesignation("depense detail "  +  depense.getDescription() + " pour "+ categorieDetail.getLibelle()); // Valeur par défaut
+                }
                 detail.setDesignation(detailForm.getDesignation());
                 detail.setCreated(LocalDateTime.now());
                 
                 details.add(detail);
+                ligneIndex++;
             }
             
             // Sauvegarder tous les détails
