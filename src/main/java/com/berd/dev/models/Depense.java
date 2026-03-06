@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity(name = "depense")
@@ -38,5 +39,7 @@ public class Depense {
     @JoinColumn (name =   "id_cd")
     private CategorieDepense categorieDepense;
     
+    @Transient
+    private Double montantTotal;
 
 }

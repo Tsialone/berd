@@ -31,12 +31,13 @@ CREATE TABLE depense(
 
 CREATE TABLE depense_detail(
    id_depense_detail SERIAL,
-   qte INTEGER NOT NULL,
-   pu MONEY NOT NULL,
+   qte NUMERIC(15,2) NOT NULL,
+   pu NUMERIC(15,2) NOT NULL,
    created TIMESTAMP NOT NULL,
    id_unite INTEGER NOT NULL,
    id_cdd INTEGER NOT NULL,
    id_depense INTEGER NOT NULL,
+   designation VARCHAR (50),
    PRIMARY KEY(id_depense_detail),
    FOREIGN KEY(id_unite) REFERENCES unite(id_unite),
    FOREIGN KEY(id_cdd) REFERENCES categorie_depense_detail(id_cdd),

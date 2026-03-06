@@ -1,37 +1,121 @@
 package com.berd.dev.controllers;
 
+import java.time.LocalDate;
+
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.berd.dev.forms.DepenseForm;
+import com.berd.dev.models.Depense;
+import com.berd.dev.services.CategorieDepenseDetailService;
+import com.berd.dev.services.CategorieDepenseService;
+import com.berd.dev.services.DepenseService;
+import com.berd.dev.services.UniteService;
 
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping ("/depense")
+@RequestMapping("/depenses")
 @RequiredArgsConstructor
 public class DepenseController {
 
-    @GetMapping ("/saisie")
-    public String form(Model model) {
+    private final CategorieDepenseService categorieDepenseService;
+    private final CategorieDepenseDetailService categorieDepenseDetailService;
+    private final UniteService uniteService;
+    private final DepenseService depenseService;
+
+    @GetMapping("/liste")
+    public String liste(
+            @RequestParam(required = false) Integer categorieId,
+            @RequestParam(required = false) Boolean estPrevue,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
         
+        Page<Depense> depensesPage = depenseService.getFilteredDepenses(
+            categorieId, estPrevue, dateDebut, dateFin, search, page, size);
+        
+        model.addAttribute("depenses", depensesPage);
+        model.addAttribute("categories", categorieDepenseService.getAll());
+        model.addAttribute("totalGeneral", depenseService.calculateTotal(depensesPage.getContent()));
+        model.addAttribute("content", "pages/depenses/depense-liste");
+        return "admin-layout";
+    }
 
-
-
-
+    @GetMapping("/saisie")
+    public String form(Model model) {
+        model.addAttribute("categoriesDetail", categorieDepenseDetailService.getAll());
+        model.addAttribute("categories", categorieDepenseService.getAll());
+        model.addAttribute("unites", uniteService.getAll());
         model.addAttribute("content", "pages/depenses/depense-saisie");
         return "admin-layout";
     }
 
-    @PostMapping ("/saisie")
-    public String insert(Model model) throws InterruptedException {
-        
-        Thread.sleep (5000);
+    @PostMapping("/save")
+    public String insert(@ModelAttribute DepenseForm form, RedirectAttributes rd) {
+        try {
+            // Validation basique
+            if (form.getDetails() == null || form.getDetails().isEmpty()) {
+                throw new IllegalArgumentException("Veuillez ajouter au moins un détail de dépense");
+            }
+            
+            // Sauvegarder la dépense avec ses détails
+            depenseService.save(form);
+            
+            rd.addFlashAttribute("toastMessage", "Dépense insérée avec succès");
+            rd.addFlashAttribute("toastType", "success");
 
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            rd.addFlashAttribute("toastMessage", e.getMessage());
+            rd.addFlashAttribute("toastType", "warning");
+        } catch (Exception e) {
+            e.printStackTrace();
+            rd.addFlashAttribute("toastMessage", "Erreur lors de l'insertion: " + e.getMessage());
+            rd.addFlashAttribute("toastType", "error");
+        }
 
+        return "redirect:/depenses/saisie";
+    }
 
-        return "redirect:/depense/saisie";
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable Integer id, RedirectAttributes rd) {
+        try {
+            depenseService.deleteById(id);
+            rd.addFlashAttribute("toastMessage", "Dépense supprimée avec succès");
+            rd.addFlashAttribute("toastType", "success");
+        } catch (Exception e) {
+            rd.addFlashAttribute("toastMessage", "Erreur lors de la suppression");
+            rd.addFlashAttribute("toastType", "error");
+        }
+        return "redirect:/depenses/liste";
+    }
+
+    @GetMapping("/fiche/{id}")
+    public String fiche(@PathVariable Integer id, Model model) {
+        Depense depense = depenseService.getById(id);
+        // Calculer le montant total
+        if (depense.getDepenseDetails() != null && !depense.getDepenseDetails().isEmpty()) {
+            double total = depense.getDepenseDetails().stream()
+                .mapToDouble(detail -> detail.getQte() * detail.getPu())
+                .sum();
+            depense.setMontantTotal(total);
+        }
+        model.addAttribute("depense", depense);
+        model.addAttribute("content", "pages/depenses/depense-fiche");
+        return "admin-layout";
     }
 
 }

@@ -1,0 +1,246 @@
+<section class="section" th:fragment="page">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="card-title">Liste des dépenses</h4>
+                <a th:href="@{/depenses/saisie}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Nouvelle dépense
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filtres avec formulaire Spring -->
+            <form th:action="@{/depenses/liste}" method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <label class="form-label-sm">Catégorie</label>
+                        <select name="categorieId" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Toutes les catégories</option>
+                            <option th:each="cat : ${categories}" 
+                                    th:value="${cat.idCategorieDepense}" 
+                                    th:text="${cat.libelle}"
+                                    th:selected="${param.categorieId != null and #strings.toString(cat.idCategorieDepense) == param.categorieId[0]}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6 mb-2">
+                        <label class="form-label-sm">Type</label>
+                        <select name="estPrevue" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Tous</option>
+                            <option value="true" th:selected="${param.estPrevue != null and param.estPrevue[0] == 'true'}">Prévues</option>
+                            <option value="false" th:selected="${param.estPrevue != null and param.estPrevue[0] == 'false'}">Réalisées</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6 mb-2">
+                        <label class="form-label-sm">Date début</label>
+                        <input type="date" name="dateDebut" class="form-control form-control-sm" 
+                               th:value="${param.dateDebut}" onchange="this.form.submit()">
+                    </div>
+                    <div class="col-md-2 col-sm-6 mb-2">
+                        <label class="form-label-sm">Date fin</label>
+                        <input type="date" name="dateFin" class="form-control form-control-sm" 
+                               th:value="${param.dateFin}" onchange="this.form.submit()">
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label-sm">Recherche</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="search" class="form-control" 
+                                   th:value="${param.search}" placeholder="Description...">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-1 mb-2">
+                        <label class="form-label-sm">&nbsp;</label>
+                        <a th:href="@{/depenses/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Vue desktop: Tableau -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Catégorie</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th>Nb détails</th>
+                            <th class="text-end">Montant total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="depense, stat : ${depenses}" th:data-id="${depense.idDepense}">
+                            <td th:text="${stat.index + 1 + (depenses.number * depenses.size)}">1</td>
+                            <td th:text="${#temporals.format(depense.created, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30</td>
+                            <td>
+                                <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}" 
+                                   class="text-decoration-none fw-bold"
+                                   th:text="${depense.categorieDepense.libelle}">
+                                    Catégorie
+                                </a>
+                            </td>
+                            <td th:text="${depense.description ?: '-'}">Description</td>
+                            <td>
+                                <span th:if="${depense.estPrevue}" class="badge bg-warning">Prévue</span>
+                                <span th:unless="${depense.estPrevue}" class="badge bg-success">Réalisée</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light-primary" 
+                                      th:text="${depense.depenseDetails?.size() ?: 0}">0</span>
+                            </td>
+                            <td class="text-end fw-bold">
+                                <span th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}" 
+                                       class="btn btn-sm btn-primary" title="Voir détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/depenses/delete/{id}(id=${depense.idDepense})}" 
+                                       class="btn btn-sm btn-danger" 
+                                       title="Supprimer"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold bg-light">
+                            <td colspan="6" class="text-end">Total général:</td>
+                            <td class="text-end text-primary">
+                                <span th:text="${#numbers.formatDecimal(totalGeneral ?: 0, 1, 2)}">0.00</span> Ar
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Vue mobile: Cartes -->
+            <div class="d-md-none">
+                <div class="card mb-3" th:each="depense : ${depenses}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}" 
+                                       class="text-decoration-none"
+                                       th:text="${depense.categorieDepense.libelle}">
+                                        Catégorie
+                                    </a>
+                                </h6>
+                                <small class="text-muted" 
+                                       th:text="${#temporals.format(depense.created, 'dd/MM/yyyy HH:mm')}">
+                                    06/03/2026 14:30
+                                </small>
+                            </div>
+                            <span th:if="${depense.estPrevue}" class="badge bg-warning">Prévue</span>
+                            <span th:unless="${depense.estPrevue}" class="badge bg-success">Réalisée</span>
+                        </div>
+                        <p class="mb-2" th:text="${depense.description ?: 'Aucune description'}">Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <span th:text="${depense.depenseDetails?.size() ?: 0}">0</span> détail(s)
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-primary">
+                                    <span th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
+                                </div>
+                                <div class="btn-group btn-group-sm mt-1">
+                                    <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/depenses/delete/{id}(id=${depense.idDepense})}" 
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Supprimer ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${depenses.totalPages > 1}" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${depenses.first} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="@{/depenses/liste(page=${depenses.number - 1}, size=${depenses.size}, 
+                                    categorieId=${param.categorieId}, estPrevue=${param.estPrevue}, 
+                                    dateDebut=${param.dateDebut}, dateFin=${param.dateFin}, search=${param.search})}">
+                            Précédent
+                        </a>
+                    </li>
+                    
+                    <li class="page-item" 
+                        th:each="i : ${#numbers.sequence(0, depenses.totalPages - 1)}"
+                        th:if="${i >= depenses.number - 2 && i <= depenses.number + 2}"
+                        th:classappend="${i == depenses.number} ? 'active'">
+                        <a class="page-link" 
+                           th:href="@{/depenses/liste(page=${i}, size=${depenses.size}, 
+                                    categorieId=${param.categorieId}, estPrevue=${param.estPrevue}, 
+                                    dateDebut=${param.dateDebut}, dateFin=${param.dateFin}, search=${param.search})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+                    
+                    <li class="page-item" th:classappend="${depenses.last} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="@{/depenses/liste(page=${depenses.number + 1}, size=${depenses.size}, 
+                                    categorieId=${param.categorieId}, estPrevue=${param.estPrevue}, 
+                                    dateDebut=${param.dateDebut}, dateFin=${param.dateFin}, search=${param.search})}">
+                            Suivant
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="text-center text-muted">
+                    <small>
+                        Page <span th:text="${depenses.number + 1}">1</span> sur 
+                        <span th:text="${depenses.totalPages}">1</span> 
+                        (<span th:text="${depenses.totalElements}">0</span> dépense(s))
+                    </small>
+                </div>
+            </nav>
+
+            <div th:if="${depenses.totalElements == 0}" class="text-center py-5">
+                <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">Aucune dépense trouvée</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-label-sm {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: #f8f9fa;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+</section>

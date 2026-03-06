@@ -10,7 +10,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
+import lombok.Data;
+
 @Entity(name = "depense_detail")
+@Data
 public class DepenseDetail {
 
     @Id
@@ -19,22 +22,18 @@ public class DepenseDetail {
     private Integer idDepenseDetail;
 
     @Column(nullable = false)
-    private Integer qte;
+    private Double qte;
 
     @Column(nullable = false)
     private Double pu;
 
-
-
     @Column(nullable = false)
     private LocalDateTime created = LocalDateTime.now();
-
 
     @ManyToOne
     @JoinColumn (name =  "id_unite")
     private Unite unite;
 
-    
     @ManyToOne
     @JoinColumn (name =  "id_depense")
     private Depense depense;
@@ -43,7 +42,10 @@ public class DepenseDetail {
     @JoinColumn (name =  "id_cdd")
     private CategorieDepenseDetail categorieDepenseDetail;
 
+    @Column
+    private String designation;
 
 
 
 }
+

@@ -1,42 +1,615 @@
 <section class="section" th:fragment="page">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">Saisie de depense</h4>
-        </div>
+    <form class="form" method="post" th:action="@{/depenses/save}" id="depenseForm">
+        <div class="row match-height">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Insertion de dépense</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="categorieDepense">Catégorie dépense</label>
+                                        <input type="hidden" id="idCategorieDepense" name="idCategorieDepense" required>
+                                        <input type="text" id="categorieDepense" 
+                                               class="form-control" 
+                                               placeholder="Sélectionner une catégorie" 
+                                               autocomplete="off"
+                                               data-target="idCategorieDepense">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="dateDepense">Date de la dépense</label>
+                                        <input type="datetime-local" id="dateDepense" name="created" 
+                                               class="form-control" required>
+                                    </div>
+                                </div>
 
-        <div class="card-body">
-            <hr />
-            <form th:action="@{/depense/saisie}" method="post" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="dateDebut" class="form-label">Date</label>
-                        <input type="datetime-local" class="form-control" id="dateDebut" name="dateDebut"
-                            th:value="${param.dateDebut}">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="description">Description</label>
+                                        <textarea id="description" name="description" class="form-control" 
+                                                  rows="3" placeholder="Description de la dépense"></textarea>
+                                    </div>
+                                </div>
 
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-                            <label class="form-check-label" for="flexSwitchCheckDefault">Prevue</label>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="estPrevue" name="estPrevue" value="true">
+                                            <label class="form-check-label" for="estPrevue">
+                                                Dépense prévue
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="d-flex justify-content-end gap-2">
+                            <button type="reset" class="btn btn-light-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Réinitialiser
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Enregistrer
+                            </button>
+                        </div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                
+                <!-- Section Détails de dépense -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="d-flex align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-list-check me-2"></i>Détails de la dépense
+                                </h5>
+                                <span class="badge bg-light-primary ms-2" id="compteur">0 ligne(s)</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="checkAll" onchange="toggleCheckAll()">
+                                    <label class="form-check-label small text-muted" for="checkAll">Tout</label>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success" onclick="ajouterLigne()">
+                                    <i class="bi bi-plus-lg"></i> Ajouter
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="supprimerSelectionnes()">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-
-
-                    <div class="col-md-4">
-                        <label for="heure" class="form-label">Heure</label>
-                        <input type="time" class="form-control" id="heure" name="heure" th:value="${param.heure}">
+                    <div class="card-body p-2 p-md-3">
+                        <div id="detailsContainer">
+                            <!-- Les lignes seront ajoutées ici -->
+                        </div>
+                        
+                        <div class="text-center py-5" id="emptyMessage">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-2">Aucun détail. Cliquez sur "Ajouter"</p>
+                        </div>
+                        
+                        <!-- Total global -->
+                        <div class="mt-3 pt-3 border-top" id="totalGlobal">
+                            <div class="row">
+                                <div class="col-md-8"></div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><strong>Total Général:</strong></h5>
+                                        <h4 class="mb-0 text-primary"><strong id="montantTotal">0.00 Ar</strong></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                     
+                </div>
+                
+              
+            </div>
+        </div>
+    </form>
+            
+    <!-- Template pour datalist (caché) -->
+    <div style="display: none;">
+        <datalist id="categorieDetailTemplate">
+            <option th:each="catDetail : ${categoriesDetail}" 
+                    th:value="${catDetail.idCategorieDepenseDetail}" 
+                    th:text="${catDetail.libelle}"></option>
+        </datalist>
+        
+        <datalist id="uniteTemplate">
+            <option th:each="unite : ${unites}" 
+                    th:value="${unite.idUnite}" 
+                    th:text="${unite.libelle}"></option>
+        </datalist>
+    </div>
 
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-25">
-                            Valider
-                        </button>
-                        <a th:href="@{/salles/liste}" class="btn btn-secondary ms-1">
-                            <i class="bi bi-arrow-clockwise"></i> Réinitialiser
-                        </a>
+    <style>
+        .detail-item {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-left: 3px solid #435ebe;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+        
+        .detail-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .detail-item.selected {
+            border-left-color: #198754;
+            background: #f8fff8;
+        }
+        
+        .detail-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        
+        .detail-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #435ebe;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .detail-body {
+            padding: 0.75rem;
+        }
+        
+        .form-label-sm {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        #emptyMessage {
+            display: none;
+        }
+        
+        #totalGlobal {
+            display: none;
+        }
+        
+        .total-ligne {
+            font-weight: 600;
+            color: #435ebe;
+        }
+        
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 0.25rem 0.25rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .autocomplete-list.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background: #435ebe;
+            color: white;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 768px) {
+            .detail-body .row > div {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+
+    <script th:inline="javascript">
+        let detailCounter = 0;
+        
+        // Injecter les données depuis le serveur
+        const categoriesDetailData = /*[[${categoriesDetail}]]*/ [];
+        const unitesData = /*[[${unites}]]*/ [];
+        const categoriesData = /*[[${categories}]]*/ [];
+        
+        // Fonction pour convertir les fractions en décimales
+        function parseFraction(input) {
+            if (!input || input.trim() === '') return 0;
+            
+            const str = input.trim();
+            
+            // Si c'est déjà un nombre décimal
+            if (!str.includes('/') && !str.includes(' ')) {
+                return parseFloat(str) || 0;
+            }
+            
+            // Cas: "1 1/2" (nombre mixte)
+            const mixedMatch = str.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+            if (mixedMatch) {
+                const whole = parseInt(mixedMatch[1]);
+                const numerator = parseInt(mixedMatch[2]);
+                const denominator = parseInt(mixedMatch[3]);
+                return whole + (numerator / denominator);
+            }
+            
+            // Cas: "1/2" (fraction simple)
+            const fractionMatch = str.match(/^(\d+)\/(\d+)$/);
+            if (fractionMatch) {
+                const numerator = parseInt(fractionMatch[1]);
+                const denominator = parseInt(fractionMatch[2]);
+                return numerator / denominator;
+            }
+            
+            // Sinon, essayer de parser comme nombre normal
+            return parseFloat(str) || 0;
+        }
+        
+        // Fonction pour créer un autocomplete
+        function setupAutocomplete(input, data, valueField, labelField) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'autocomplete-wrapper';
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+            
+            const list = document.createElement('div');
+            list.className = 'autocomplete-list';
+            wrapper.appendChild(list);
+            
+            const targetClass = input.getAttribute('data-target');
+            const hiddenInput = document.getElementById(targetClass) || document.querySelector('.' + targetClass);
+            
+            let selectedIndex = -1;
+            let filteredData = [];
+            
+            // Fonction pour afficher les résultats
+            function showResults(items) {
+                filteredData = items;
+                if (filteredData.length === 0) {
+                    list.classList.remove('show');
+                    return;
+                }
+                
+                list.innerHTML = filteredData.map((item, index) => 
+                    `<div class="autocomplete-item" data-index="${index}" data-value="${item[valueField]}" data-label="${item[labelField]}">
+                        ${item[labelField]}
+                    </div>`
+                ).join('');
+                
+                list.classList.add('show');
+                
+                // Event pour les clics sur les items
+                list.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const label = this.getAttribute('data-label');
+                        const value = this.getAttribute('data-value');
+                        input.value = label;
+                        hiddenInput.value = value;
+                        list.classList.remove('show');
+                    });
+                });
+            }
+            
+            // Au focus, afficher toutes les options
+            input.addEventListener('focus', function() {
+                if (this.value.trim() === '') {
+                    showResults(data);
+                }
+            });
+            
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                selectedIndex = -1;
+                
+                if (!searchTerm) {
+                    // Si vide, afficher tout
+                    showResults(data);
+                    hiddenInput.value = '';
+                    return;
+                }
+                
+                // Filtre LIKE (recherche partielle)
+                const filtered = data.filter(item => 
+                    item[labelField].toLowerCase().includes(searchTerm)
+                );
+                
+                if (filtered.length === 0) {
+                    list.classList.remove('show');
+                    hiddenInput.value = '';
+                    return;
+                }
+                
+                showResults(filtered);
+            });
+            
+            // Navigation au clavier
+            input.addEventListener('keydown', function(e) {
+                const items = list.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateActiveItem(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, 0);
+                    updateActiveItem(items);
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    items[selectedIndex].click();
+                } else if (e.key === 'Escape') {
+                    list.classList.remove('show');
+                }
+            });
+            
+            function updateActiveItem(items) {
+                items.forEach((item, index) => {
+                    item.classList.toggle('active', index === selectedIndex);
+                });
+                if (items[selectedIndex]) {
+                    items[selectedIndex].scrollIntoView({ block: 'nearest' });
+                }
+            }
+            
+            // Fermer la liste quand on clique ailleurs
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    list.classList.remove('show');
+                }
+            });
+        }
+
+        function ajouterLigne() {
+            detailCounter++;
+            const container = document.getElementById('detailsContainer');
+            const emptyMessage = document.getElementById('emptyMessage');
+            
+            emptyMessage.style.display = 'none';
+            
+            const div = document.createElement('div');
+            div.className = 'detail-item';
+            div.id = `detail-${detailCounter}`;
+            div.innerHTML = `
+                <div class="detail-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" class="form-check-input detail-check m-0" onchange="updateCheckAll()">
+                        <span class="detail-badge">${detailCounter}</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0" 
+                            onclick="supprimerLigne(${detailCounter})" title="Supprimer">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+                <div class="detail-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label-sm">Catégorie</label>
+                            <input type="hidden" name="details[${detailCounter}].idCategorieDetail" class="cat-id-${detailCounter}">
+                            <input type="text" 
+                                   class="form-control form-control-sm autocomplete-cat cat-display-${detailCounter}"
+                                   placeholder="Rechercher..." 
+                                   autocomplete="off"
+                                   data-target="cat-id-${detailCounter}">
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <label class="form-label-sm">Unité</label>
+                            <input type="hidden" name="details[${detailCounter}].idUnite" class="unite-id-${detailCounter}">
+                            <input type="text"
+                                   class="form-control form-control-sm autocomplete-unite unite-display-${detailCounter}"
+                                   placeholder="Rechercher..." 
+                                   autocomplete="off"
+                                   data-target="unite-id-${detailCounter}">
+                        </div>
+                        <div class="col-md-1 col-6">
+                            <label class="form-label-sm">Qté</label>
+                            <input type="text" 
+                                   name="details[${detailCounter}].qte" 
+                                   class="form-control form-control-sm text-center qte-input" 
+                                   placeholder="0 ou 1/2"
+                                   title="Ex: 1, 0.5, 1/2, 1 1/4">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label-sm">Prix unit.</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" 
+                                       name="details[${detailCounter}].pu" 
+                                       class="form-control" 
+                                       placeholder="0.00" 
+                                       step="0.01">
+                                <span class="input-group-text">Ar</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label-sm">Total</label>
+                            <div class="total-ligne fs-6 text-end" id="total-${detailCounter}">0.00 Ar</div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label-sm">Désignation</label>
+                            <input type="text" 
+                                   name="details[${detailCounter}].designation" 
+                                   class="form-control form-control-sm" 
+                                   placeholder="Description...">
+                        </div>
                     </div>
                 </div>
-            </form>
+            `;
+            
+            container.appendChild(div);
+            
+            // Initialiser les autocompletes pour cette ligne
+            const catInput = div.querySelector('.autocomplete-cat');
+            const uniteInput = div.querySelector('.autocomplete-unite');
+            
+            setupAutocomplete(catInput, categoriesDetailData, 'idCategorieDepenseDetail', 'libelle');
+            setupAutocomplete(uniteInput, unitesData, 'idUnite', 'libelle');
+            
+            // Ajouter les événements pour calculer le total de la ligne
+            const qteInput = div.querySelector('.qte-input');
+            const puInput = div.querySelector('input[name*=".pu"]');
+            const totalDiv = div.querySelector(`#total-${detailCounter}`);
+            
+            function calculerTotalLigne() {
+                const qteValue = parseFraction(qteInput.value);
+                const puValue = parseFloat(puInput.value) || 0;
+                const total = qteValue * puValue;
+                totalDiv.textContent = total.toFixed(2) + ' Ar';
+                calculerTotalGlobal();
+                calculerTotalGlobal();
+            }
+            
+            qteInput.addEventListener('input', calculerTotalLigne);
+            puInput.addEventListener('input', calculerTotalLigne);
+            
+            updateCompteur();
+        }
+        
+        function calculerTotalGlobal() {
+            let total = 0;
+            document.querySelectorAll('.detail-item').forEach(item => {
+                const qteInput = item.querySelector('.qte-input');
+                const puInput = item.querySelector('input[name*=".pu"]');
+                
+                if (qteInput && puInput) {
+                    const qte = parseFraction(qteInput.value);
+                    const pu = parseFloat(puInput.value) || 0;
+                    total += (qte * pu);
+                }
+            });
+            
+            document.getElementById('montantTotal').textContent = total.toFixed(2) + ' Ar';
+            
+            // Afficher/masquer le total global
+            const totalGlobal = document.getElementById('totalGlobal');
+            const container = document.getElementById('detailsContainer');
+            totalGlobal.style.display = container.children.length > 0 ? 'block' : 'none';
+        }
 
-        </div>
-    </div>
+        function supprimerLigne(id) {
+            const element = document.getElementById(`detail-${id}`);
+            if (element) {
+                element.remove();
+                updateCheckAll();
+                checkEmptyState();
+                updateCompteur();
+            }
+        }
+
+        function supprimerSelectionnes() {
+            const checkboxes = document.querySelectorAll('.detail-check:checked');
+            if (checkboxes.length === 0) {
+                alert('Sélectionnez au moins une ligne.');
+                return;
+            }
+            
+            if (confirm(`Supprimer ${checkboxes.length} ligne(s) ?`)) {
+                checkboxes.forEach(checkbox => {
+                    checkbox.closest('.detail-item').remove();
+                });
+                updateCheckAll();
+                checkEmptyState();
+                calculerTotalGlobal();
+                updateCompteur();
+            }
+        }
+
+        function toggleCheckAll() {
+            const checkAll = document.getElementById('checkAll');
+            document.querySelectorAll('.detail-check').forEach(checkbox => {
+                checkbox.checked = checkAll.checked;
+                toggleItemSelection(checkbox);
+            });
+        }
+
+        function updateCheckAll() {
+            const checkboxes = document.querySelectorAll('.detail-check');
+            const checkedBoxes = document.querySelectorAll('.detail-check:checked');
+            document.getElementById('checkAll').checked = checkboxes.length > 0 && checkedBoxes.length === checkboxes.length;
+            checkboxes.forEach(checkbox => toggleItemSelection(checkbox));
+        }
+
+        function toggleItemSelection(checkbox) {
+            const item = checkbox.closest('.detail-item');
+            item.classList.toggle('selected', checkbox.checked);
+        }
+
+        function checkEmptyState() {
+            const container = document.getElementById('detailsContainer');
+            const emptyMessage = document.getElementById('emptyMessage');
+            emptyMessage.style.display = container.children.length === 0 ? 'block' : 'none';
+        }
+        
+        function updateCompteur() {
+            const count = document.getElementById('detailsContainer').children.length;
+            document.getElementById('compteur').textContent = `${count} ligne(s)`;
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            // Définir la date du jour par défaut
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const dateTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('dateDepense').value = dateTimeString;
+            
+            // Initialiser l'autocomplete pour la catégorie dépense principale
+            const categorieInput = document.getElementById('categorieDepense');
+            setupAutocomplete(categorieInput, categoriesData, 'idCategorieDepense', 'libelle');
+            // Convertir les fractions avant soumission
+            document.getElementById('depenseForm').addEventListener('submit', function(e) {
+                const qteInputs = document.querySelectorAll('.qte-input');
+                qteInputs.forEach(input => {
+                    if (input.value.trim() !== '') {
+                        const decimalValue = parseFraction(input.value);
+                        input.value = decimalValue;
+                    }
+                });
+            });
+            
+            
+            ajouterLigne();
+        });
+    </script>
+
 </section>
