@@ -45,24 +45,28 @@
                             </div>
                         </div>
                         
-                        <div class="d-flex justify-content-end gap-2">
+                        <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-2 mt-3">
                             <a th:href="@{/depenses/modifier/{id}(id=${depense.idDepense})}" 
-                               class="btn btn-warning">
-                                <i class="bi bi-pencil-square me-1"></i> Modifier
+                               class="btn btn-warning btn-action">
+                                <i class="bi bi-pencil-square me-1"></i> 
+                                <span class="btn-text">Modifier</span>
                             </a>
                             <a th:href="@{/depenses/annuler/{id}(id=${depense.idDepense})}" 
-                               class="btn btn-danger"
+                               class="btn btn-danger btn-action"
                                onclick="return confirm('Annuler cette dépense ?')">
-                                <i class="bi bi-x-circle me-1"></i> Annuler
+                                <i class="bi bi-x-circle me-1"></i> 
+                                <span class="btn-text">Annuler</span>
                             </a>
                             <a th:href="@{/depenses/valider/{id}(id=${depense.idDepense})}"
-                               class="btn btn-success"
+                               class="btn btn-success btn-action"
                                onclick="return confirm('Valider cette dépense ?')">
-                                <i class="bi bi-check-circle me-1"></i> Valider
+                                <i class="bi bi-check-circle me-1"></i> 
+                                <span class="btn-text">Valider</span>
                             </a>
                             <a th:href="@{/depenses/regler/{id}(id=${depense.idDepense})}"
-                               class="btn btn-primary">
-                                <i class="bi bi-cash-coin me-1"></i> Régler
+                               class="btn btn-primary btn-action">
+                                <i class="bi bi-cash-coin me-1"></i> 
+                                <span class="btn-text">Régler</span>
                             </a>
                         </div>
                     </div>
@@ -154,6 +158,34 @@
     </div>
 
     <style>
+        .btn-action {
+            min-width: 110px;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 576px) {
+            .btn-action {
+                flex: 1 1 calc(50% - 0.5rem);
+                min-width: 0;
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .btn-action .btn-text {
+                display: inline;
+            }
+        }
+        
+        @media (max-width: 380px) {
+            .btn-action {
+                flex: 1 1 100%;
+            }
+            
+            .btn-action i {
+                margin-right: 0.5rem;
+            }
+        }
+        
         .detail-item {
             background: #fff;
             border: 1px solid #e9ecef;

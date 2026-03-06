@@ -12,7 +12,8 @@
                                 <div class="col-md-6 col-12">
                                     <div class="form-group">
                                         <label for="categorieDepense">Catégorie dépense</label>
-                                        <input type="hidden" id="idCategorieDepense" name="idCategorieDepense" required>
+                                        <input type="hidden" id="idCategorieDepense" name="idCategorieDepense" 
+                                               th:value="${depenseForm != null ? depenseForm.idCategorieDepense : ''}" required>
                                         <input type="text" id="categorieDepense" 
                                                class="form-control" 
                                                placeholder="Sélectionner une catégorie" 
@@ -25,7 +26,8 @@
                                     <div class="form-group">
                                         <label for="dateDepense">Date de la dépense</label>
                                         <input type="datetime-local" id="dateDepense" name="created" 
-                                               class="form-control" required>
+                                               class="form-control" 
+                                               th:value="${depenseForm != null and depenseForm.created != null ? #temporals.format(depenseForm.created, 'yyyy-MM-dd''T''HH:mm') : ''}" required>
                                     </div>
                                 </div>
 
@@ -33,7 +35,8 @@
                                     <div class="form-group">
                                         <label for="description">Description</label>
                                         <textarea id="description" name="description" class="form-control" 
-                                                  rows="3" placeholder="Description de la dépense"></textarea>
+                                                  rows="3" placeholder="Description de la dépense" 
+                                                  th:text="${depenseForm != null ? depenseForm.description : ''}"></textarea>
                                     </div>
                                 </div>
 
@@ -41,7 +44,8 @@
                                     <div class="form-group">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" 
-                                                   id="estPrevue" name="estPrevue" value="true">
+                                                   id="estPrevue" name="estPrevue" value="true"
+                                                   th:checked="${depenseForm != null and depenseForm.estPrevue}">
                                             <label class="form-check-label" for="estPrevue">
                                                 Dépense prévue
                                             </label>
@@ -104,7 +108,7 @@
                                 <div class="col-md-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><strong>Total Général:</strong></h5>
-                                        <h4 class="mb-0 text-primary"><strong id="montantTotal">0.00 Ar</strong></h4>
+                                        <h4 class="mb-0 text-primary"><strong id="montantTotal">0,00 Ar</strong></h4>
                                     </div>
                                 </div>
                             </div>
@@ -251,6 +255,22 @@
         const categoriesDetailData = /*[[${categoriesDetail}]]*/ [];
         const unitesData = /*[[${unites}]]*/ [];
         const categoriesData = /*[[${categories}]]*/ [];
+        
+        // Récupérer depenseForm depuis la session
+        const depenseFormFromSession = /*[[${depenseForm}]]*/ null;
+        
+        console.log('DepenseForm depuis session:', depenseFormFromSession);
+        
+        // Fonction pour formater les montants
+        function formatMontant(montant) {
+            const arrondi = parseFloat(montant).toFixed(2);
+            const [entier, decimal] = arrondi.split('.');
+            
+            // Ajouter les séparateurs de milliers
+            const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            
+            return `${entierFormate},${decimal} Ar`;
+        }
         
         // Fonction pour convertir les fractions en décimales
         function parseFraction(input) {
@@ -399,23 +419,23 @@
         }
 
         function ajouterLigne() {
-            detailCounter++;
             const container = document.getElementById('detailsContainer');
             const emptyMessage = document.getElementById('emptyMessage');
             
             emptyMessage.style.display = 'none';
             
+            const currentIndex = detailCounter;
             const div = document.createElement('div');
             div.className = 'detail-item';
-            div.id = `detail-${detailCounter}`;
+            div.id = `detail-${currentIndex}`;
             div.innerHTML = `
                 <div class="detail-header d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" class="form-check-input detail-check m-0" onchange="updateCheckAll()">
-                        <span class="detail-badge">${detailCounter}</span>
+                        <input type="checkbox" class="form-check-input detail-check m-0" checked onchange="updateCheckAll()">
+                        <span class="detail-badge">${currentIndex + 1}</span>
                     </div>
                     <button type="button" class="btn btn-sm btn-link text-danger p-0" 
-                            onclick="supprimerLigne(${detailCounter})" title="Supprimer">
+                            onclick="supprimerLigne(${currentIndex})" title="Supprimer">
                         <i class="bi bi-x-circle-fill"></i>
                     </button>
                 </div>
@@ -423,26 +443,26 @@
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label-sm">Catégorie</label>
-                            <input type="hidden" name="details[${detailCounter}].idCategorieDetail" class="cat-id-${detailCounter}">
+                            <input type="hidden" name="details[${currentIndex}].idCategorieDetail" class="cat-id-${currentIndex}">
                             <input type="text" 
-                                   class="form-control form-control-sm autocomplete-cat cat-display-${detailCounter}"
+                                   class="form-control form-control-sm autocomplete-cat cat-display-${currentIndex}"
                                    placeholder="Rechercher..." 
                                    autocomplete="off"
-                                   data-target="cat-id-${detailCounter}">
+                                   data-target="cat-id-${currentIndex}">
                         </div>
                         <div class="col-md-2 col-6">
                             <label class="form-label-sm">Unité</label>
-                            <input type="hidden" name="details[${detailCounter}].idUnite" class="unite-id-${detailCounter}">
+                            <input type="hidden" name="details[${currentIndex}].idUnite" class="unite-id-${currentIndex}">
                             <input type="text"
-                                   class="form-control form-control-sm autocomplete-unite unite-display-${detailCounter}"
+                                   class="form-control form-control-sm autocomplete-unite unite-display-${currentIndex}"
                                    placeholder="Rechercher..." 
                                    autocomplete="off"
-                                   data-target="unite-id-${detailCounter}">
+                                   data-target="unite-id-${currentIndex}">
                         </div>
                         <div class="col-md-1 col-6">
                             <label class="form-label-sm">Qté</label>
                             <input type="text" 
-                                   name="details[${detailCounter}].qte" 
+                                   name="details[${currentIndex}].qte" 
                                    class="form-control form-control-sm text-center qte-input" 
                                    placeholder="0 ou 1/2"
                                    title="Ex: 1, 0.5, 1/2, 1 1/4">
@@ -451,7 +471,7 @@
                             <label class="form-label-sm">Prix unit.</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" 
-                                       name="details[${detailCounter}].pu" 
+                                       name="details[${currentIndex}].pu" 
                                        class="form-control" 
                                        placeholder="0.00" 
                                        step="0.01">
@@ -460,18 +480,20 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label-sm">Total</label>
-                            <div class="total-ligne fs-6 text-end" id="total-${detailCounter}">0.00 Ar</div>
+                            <div class="total-ligne fs-6 text-end" id="total-${currentIndex}">0,00 Ar</div>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label-sm">Désignation</label>
                             <input type="text" 
-                                   name="details[${detailCounter}].designation" 
+                                   name="details[${currentIndex}].designation" 
                                    class="form-control form-control-sm" 
                                    placeholder="Description...">
                         </div>
                     </div>
                 </div>
             `;
+            
+            detailCounter++;
             
             container.appendChild(div);
             
@@ -485,14 +507,13 @@
             // Ajouter les événements pour calculer le total de la ligne
             const qteInput = div.querySelector('.qte-input');
             const puInput = div.querySelector('input[name*=".pu"]');
-            const totalDiv = div.querySelector(`#total-${detailCounter}`);
+            const totalDiv = div.querySelector(`#total-${currentIndex}`);
             
             function calculerTotalLigne() {
                 const qteValue = parseFraction(qteInput.value);
                 const puValue = parseFloat(puInput.value) || 0;
                 const total = qteValue * puValue;
-                totalDiv.textContent = total.toFixed(2) + ' Ar';
-                calculerTotalGlobal();
+                totalDiv.textContent = formatMontant(total);
                 calculerTotalGlobal();
             }
             
@@ -515,7 +536,7 @@
                 }
             });
             
-            document.getElementById('montantTotal').textContent = total.toFixed(2) + ' Ar';
+            document.getElementById('montantTotal').textContent = formatMontant(total);
             
             // Afficher/masquer le total global
             const totalGlobal = document.getElementById('totalGlobal');
@@ -583,32 +604,90 @@
         }
 
         window.addEventListener('DOMContentLoaded', function() {
-            // Définir la date du jour par défaut
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const dateTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
-            document.getElementById('dateDepense').value = dateTimeString;
+            // Définir la date du jour par défaut si pas de valeur
+            const dateInput = document.getElementById('dateDepense');
+            if (!dateInput.value) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const dateTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
+                dateInput.value = dateTimeString;
+            }
             
             // Initialiser l'autocomplete pour la catégorie dépense principale
             const categorieInput = document.getElementById('categorieDepense');
             setupAutocomplete(categorieInput, categoriesData, 'idCategorieDepense', 'libelle');
+            
+            // Pré-remplir la catégorie si elle existe
+            const idCategorieInput = document.getElementById('idCategorieDepense');
+            if (idCategorieInput.value) {
+                const categorie = categoriesData.find(c => c.idCategorieDepense == idCategorieInput.value);
+                if (categorie) {
+                    categorieInput.value = categorie.libelle;
+                }
+            }
+            
             // Convertir les fractions avant soumission
             document.getElementById('depenseForm').addEventListener('submit', function(e) {
+                // Désactiver les inputs des lignes non cochées
+                document.querySelectorAll('.detail-item').forEach(item => {
+                    const checkbox = item.querySelector('.detail-check');
+                    if (!checkbox.checked) {
+                        item.querySelectorAll('input, select, textarea').forEach(input => {
+                            input.disabled = true;
+                        });
+                    }
+                });
+                
+                // Convertir les fractions pour les lignes cochées
                 const qteInputs = document.querySelectorAll('.qte-input');
                 qteInputs.forEach(input => {
-                    if (input.value.trim() !== '') {
+                    if (!input.disabled && input.value.trim() !== '') {
                         const decimalValue = parseFraction(input.value);
                         input.value = decimalValue;
                     }
                 });
             });
             
+            // Si form existe et a des détails, on les affiche
+            if (depenseFormFromSession && depenseFormFromSession.details) {
+                depenseFormFromSession.details.forEach(detail => {
+                    ajouterLigne();
+                    const lastDetail = document.querySelector('.detail-item:last-child');
+                    
+                    const catIdInput = lastDetail.querySelector('[name*=".idCategorieDetail"]');
+                    const catDisplayInput = lastDetail.querySelector('.autocomplete-cat');
+                    const uniteIdInput = lastDetail.querySelector('[name*=".idUnite"]');
+                    const uniteDisplayInput = lastDetail.querySelector('.autocomplete-unite');
+                    const qteInput = lastDetail.querySelector('[name*=".qte"]');
+                    const puInput = lastDetail.querySelector('[name*=".pu"]');
+                    const designationInput = lastDetail.querySelector('[name*=".designation"]');
+                    
+                    if (detail.idCategorieDetail) {
+                        catIdInput.value = detail.idCategorieDetail;
+                        const cat = categoriesDetailData.find(c => c.idCategorieDepenseDetail == detail.idCategorieDetail);
+                        if (cat) catDisplayInput.value = cat.libelle;
+                    }
+                    
+                    if (detail.idUnite) {
+                        uniteIdInput.value = detail.idUnite;
+                        const unite = unitesData.find(u => u.idUnite == detail.idUnite);
+                        if (unite) uniteDisplayInput.value = unite.libelle;
+                    }
+                    
+                    if (detail.qte) qteInput.value = detail.qte;
+                    if (detail.pu) puInput.value = detail.pu;
+                    if (detail.designation) designationInput.value = detail.designation;
+                    
+                    setTimeout(() => puInput.dispatchEvent(new Event('input')), 50);
+                });
+            }
             
-            ajouterLigne();
+            // Afficher le message vide si nécessaire
+            checkEmptyState();
         });
     </script>
 

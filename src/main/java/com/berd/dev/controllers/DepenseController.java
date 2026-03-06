@@ -55,16 +55,24 @@ public class DepenseController {
     }
 
     @GetMapping("/saisie")
-    public String form(Model model) {
+    public String form(Model model, jakarta.servlet.http.HttpSession session) {
         model.addAttribute("categoriesDetail", categorieDepenseDetailService.getAll());
         model.addAttribute("categories", categorieDepenseService.getAll());
         model.addAttribute("unites", uniteService.getAll());
+        
+        // Récupérer le formulaire de la session s'il existe
+        DepenseForm depenseForm = (DepenseForm) session.getAttribute("depenseForm");
+        if (depenseForm != null) {
+            model.addAttribute("depenseForm", depenseForm);
+            // Ne PAS supprimer ici, on garde en session jusqu'à sauvegarde réussie
+        }
+        
         model.addAttribute("content", "pages/depenses/depense-saisie");
         return "admin-layout";
     }
 
     @PostMapping("/save")
-    public String insert(@ModelAttribute DepenseForm form, RedirectAttributes rd) {
+    public String insert(@ModelAttribute DepenseForm form, RedirectAttributes rd, jakarta.servlet.http.HttpSession session) {
         try {
             // Validation basique
             if (form.getDetails() == null || form.getDetails().isEmpty()) {
@@ -73,16 +81,25 @@ public class DepenseController {
             
             // Sauvegarder la dépense avec ses détails
             depenseService.save(form);
+
+            System.out.println(form.getDetails().size() + " taillle ");
+            
+            // Succès : supprimer le formulaire de la session
+            session.removeAttribute("depenseForm");
             
             rd.addFlashAttribute("toastMessage", "Dépense insérée avec succès");
             rd.addFlashAttribute("toastType", "success");
 
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
+            // Passer le formulaire en session pour conserver l'état
+            session.setAttribute("depenseForm", form);
             rd.addFlashAttribute("toastMessage", e.getMessage());
             rd.addFlashAttribute("toastType", "warning");
         } catch (Exception e) {
             e.printStackTrace();
+            // Passer le formulaire en session pour conserver l'état
+            session.setAttribute("depenseForm", form);
             rd.addFlashAttribute("toastMessage", "Erreur lors de l'insertion: " + e.getMessage());
             rd.addFlashAttribute("toastType", "error");
         }
