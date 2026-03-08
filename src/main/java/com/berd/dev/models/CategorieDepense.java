@@ -1,5 +1,6 @@
 package com.berd.dev.models;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -27,6 +28,9 @@ public class CategorieDepense {
 
     @Column(nullable = false)
     private String type;
+
+    @Column (name =  "created", nullable = false)
+    private LocalDateTime created = LocalDateTime.now();
 
    
 

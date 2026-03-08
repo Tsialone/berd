@@ -1,0 +1,220 @@
+<section class="section" th:fragment="page">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="card-title">Liste des détails de catégorie</h4>
+                <a th:href="@{/categorie-depense-details/saisie}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Nouveau détail
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filtres -->
+            <form th:action="@{/categorie-depense-details/liste}" method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-4 col-12 mb-2">
+                        <label class="form-label-sm">Recherche</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" 
+                                   name="search" 
+                                   class="form-control"
+                                   th:value="${search}"
+                                   placeholder="Rechercher par libellé...">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 col-12 mb-2">
+                        <label class="form-label-sm">Catégorie</label>
+                        <select name="categorieId" class="form-select form-select-sm">
+                            <option value="">Toutes les catégories</option>
+                            <option th:each="cat : ${categories}" 
+                                    th:value="${cat.idCategorieDepense}"
+                                    th:text="${cat.libelle}"
+                                    th:selected="${categorieId != null and categorieId == cat.idCategorieDepense}">
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label-sm">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-sm d-block w-100">
+                            <i class="bi bi-funnel me-1"></i> Filtrer
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-1 mb-2">
+                        <label class="form-label-sm">&nbsp;</label>
+                        <a th:href="@{/categorie-depense-details/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Vue desktop: Tableau -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Libellé</th>
+                            <th>Catégorie parent</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="detail, stat : ${details}" th:data-id="${detail.idCategorieDepenseDetail}">
+                            <td th:text="${stat.index + 1 + (details.number * details.size)}">1</td>
+                            <td>
+                                <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                   class="text-decoration-none fw-bold">
+                                    <span th:text="${detail.libelle}">Libellé</span>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-light-info" 
+                                      th:if="${detail.idCategorieDepense != null}"
+                                      th:text="${categories.?[idCategorieDepense == #vars.detail.idCategorieDepense][0]?.libelle ?: 'N/A'}">
+                                    Catégorie
+                                </span>
+                                <span class="text-muted" th:unless="${detail.idCategorieDepense != null}">-</span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                       class="btn btn-sm btn-info"
+                                       title="Voir la fiche">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/categorie-depense-details/edit/{id}(id=${detail.idCategorieDepenseDetail})}" 
+                                       class="btn btn-sm btn-warning" 
+                                       title="Modifier">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger" 
+                                            title="Supprimer"
+                                            th:onclick="'supprimerDetail(' + ${detail.idCategorieDepenseDetail} + ')'">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vue mobile: Cartes -->
+            <div class="d-md-none">
+                <div class="card mb-3" th:each="detail : ${details}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                       class="text-decoration-none"
+                                       th:text="${detail.libelle}">
+                                        Libellé
+                                    </a>
+                                </h6>
+                                <span class="badge bg-light-info" 
+                                      th:if="${detail.idCategorieDepense != null}"
+                                      th:text="${categories.?[idCategorieDepense == #vars.detail.idCategorieDepense][0]?.libelle ?: 'N/A'}">
+                                    Catégorie
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                   class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{/categorie-depense-details/edit/{id}(id=${detail.idCategorieDepenseDetail})}" 
+                                   class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        th:onclick="'supprimerDetail(' + ${detail.idCategorieDepenseDetail} + ')'">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${details.totalPages > 1}" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${details.first} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="@{/categorie-depense-details/liste(page=${details.number - 1}, size=${details.size}, search=${search}, categorieId=${categorieId})}">
+                            Précédent
+                        </a>
+                    </li>
+                    
+                    <li class="page-item" 
+                        th:each="i : ${#numbers.sequence(0, details.totalPages - 1)}"
+                        th:if="${i >= details.number - 2 && i <= details.number + 2}"
+                        th:classappend="${i == details.number} ? 'active'">
+                        <a class="page-link" 
+                           th:href="@{/categorie-depense-details/liste(page=${i}, size=${details.size}, search=${search}, categorieId=${categorieId})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+                    
+                    <li class="page-item" th:classappend="${details.last} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="@{/categorie-depense-details/liste(page=${details.number + 1}, size=${details.size}, search=${search}, categorieId=${categorieId})}">
+                            Suivant
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="text-center text-muted">
+                    <small>
+                        Page <span th:text="${details.number + 1}">1</span> sur 
+                        <span th:text="${details.totalPages}">1</span> 
+                        (<span th:text="${details.totalElements}">0</span> détail(s))
+                    </small>
+                </div>
+            </nav>
+
+            <div th:if="${details.totalElements == 0}" class="text-center py-5">
+                <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">Aucun détail trouvé</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-label-sm {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: #f8f9fa;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+    
+    <script>
+        function supprimerDetail(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce détail ?')) {
+                window.location.href = '/categorie-depense-details/delete/' + id;
+            }
+        }
+    </script>
+</section>

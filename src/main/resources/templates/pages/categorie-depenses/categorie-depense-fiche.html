@@ -1,0 +1,158 @@
+<section class="section" th:fragment="page">
+    <div class="row">
+        <div class="col-12">
+            <!-- Carte principale -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                        <h4 class="card-title mb-0">
+                            <i class="bi bi-tag-fill me-2"></i>Fiche Catégorie Dépense
+                        </h4>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a th:href="@{/categorie-depenses/edit/{id}(id=${categorieDepense.idCategorieDepense})}" 
+                               class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square me-1"></i> Modifier
+                            </a>
+                            <button type="button" 
+                                    class="btn btn-danger btn-sm"
+                                    th:onclick="'supprimerCategorie(' + ${categorieDepense.idCategorieDepense} + ')'">
+                                <i class="bi bi-trash me-1"></i> Supprimer
+                            </button>
+                            <a th:href="@{/categorie-depenses/liste}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Libellé</label>
+                            <div class="fw-bold fs-5" th:text="${categorieDepense.libelle}">Libellé</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Type</label>
+                            <div>
+                                <span class="badge bg-light-info fs-6" th:text="${categorieDepense.type}">Type</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des détails -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-tags-fill me-2"></i>
+                            Détails de catégorie 
+                            <span class="badge bg-primary" th:text="${details.size()}">0</span>
+                        </h5>
+                        <a th:href="@{/categorie-depense-details/saisie(categorieId=${categorieDepense.idCategorieDepense})}" 
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Ajouter
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div th:if="${details.isEmpty()}" class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Aucun détail pour cette catégorie</p>
+                    </div>
+
+                    <!-- Vue desktop: Tableau -->
+                    <div th:unless="${details.isEmpty()}" class="table-responsive d-none d-md-block">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>Libellé</th>
+                                    <th style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="detail, stat : ${details}">
+                                    <td th:text="${stat.index + 1}">1</td>
+                                    <td>
+                                        <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                           class="text-decoration-none fw-bold">
+                                            <i class="bi bi-file-text me-1"></i>
+                                            <span th:text="${detail.libelle}">Libellé</span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                               class="btn btn-sm btn-info"
+                                               title="Voir la fiche">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a th:href="@{/categorie-depense-details/edit/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                               class="btn btn-sm btn-warning"
+                                               title="Modifier">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vue mobile: Cartes -->
+                    <div th:unless="${details.isEmpty()}" class="d-md-none">
+                        <div class="card mb-2" th:each="detail : ${details}">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="flex-grow-1">
+                                        <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                           class="text-decoration-none">
+                                            <strong th:text="${detail.libelle}">Libellé</strong>
+                                        </a>
+                                    </div>
+                                    <div class="btn-group btn-group-sm ms-2">
+                                        <a th:href="@{/categorie-depense-details/fiche/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a th:href="@{/categorie-depense-details/edit/{id}(id=${detail.idCategorieDepenseDetail})}"
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: #f8f9fa;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        function supprimerCategorie(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?\n\nAttention : Cette action supprimera également tous les détails associés.')) {
+                window.location.href = '/categorie-depenses/delete/' + id;
+            }
+        }
+    </script>
+</section>

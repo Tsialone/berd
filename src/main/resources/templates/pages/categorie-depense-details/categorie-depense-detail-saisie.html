@@ -1,0 +1,279 @@
+<section class="section" th:fragment="page">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title">
+                            <i class="bi bi-pencil-square me-2"></i>
+                            <span th:text="${detail.idCategorieDepenseDetail != null ? 'Modifier' : 'Nouvelle'} + ' catégorie détail'"></span>
+                        </h4>
+                        <a th:href="@{/categorie-depense-details/liste}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/categorie-depense-details/save}" 
+                          th:object="${detail}" 
+                          method="post" 
+                          id="detailForm">
+                        
+                        <input type="hidden" th:field="*{idCategorieDepenseDetail}">
+                        <input type="hidden" th:field="*{created}">
+                        
+                        <div class="row">
+                            <!-- Catégorie parent avec autocomplete -->
+                            <div class="col-md-6 col-12 mb-3">
+                                <label class="form-label" for="categorieDepense">
+                                    Catégorie dépense <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="categorieDepense"
+                                       data-target="idCategorieDepense"
+                                       placeholder="Rechercher une catégorie..."
+                                       autocomplete="off"
+                                       required>
+                                <input type="hidden" 
+                                       th:field="*{idCategorieDepense}" 
+                                       id="idCategorieDepense">
+                                <div class="invalid-feedback">
+                                    Veuillez sélectionner une catégorie
+                                </div>
+                            </div>
+
+                            <!-- Libellé -->
+                            <div class="col-md-6 col-12 mb-3">
+                                <label class="form-label" for="libelle">
+                                    Libellé <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       th:field="*{libelle}"
+                                       id="libelle"
+                                       placeholder="Ex: Salaire, Loyer..."
+                                       required>
+                                <div class="invalid-feedback">
+                                    Le libellé est obligatoire
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a th:href="@{/categorie-depense-details/liste}" class="btn btn-light">
+                                        <i class="bi bi-x-circle me-1"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-1"></i> Enregistrer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const categoriesData = /*[[${categories}]]*/ [];
+        
+        // Fonction pour créer un autocomplete (identique à depense-saisie)
+        function setupAutocomplete(input, dataSource, valueField, labelField) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'autocomplete-wrapper';
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+            
+            const list = document.createElement('div');
+            list.className = 'autocomplete-list';
+            wrapper.appendChild(list);
+            
+            const targetId = input.getAttribute('data-target');
+            const hiddenInput = document.getElementById(targetId);
+            
+            let selectedIndex = -1;
+            let filteredData = [];
+            
+            // Fonction pour afficher les résultats
+            function showResults(items) {
+                filteredData = items;
+                if (filteredData.length === 0) {
+                    list.classList.remove('show');
+                    return;
+                }
+                
+                list.innerHTML = filteredData.map((item, index) => 
+                    `<div class="autocomplete-item" data-index="${index}" data-value="${item[valueField]}" data-label="${item[labelField]}">
+                        ${item[labelField]}
+                    </div>`
+                ).join('');
+                
+                list.classList.add('show');
+                
+                // Event pour les clics sur les items
+                list.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const label = this.getAttribute('data-label');
+                        const value = this.getAttribute('data-value');
+                        input.value = label;
+                        hiddenInput.value = value;
+                        list.classList.remove('show');
+                        input.classList.remove('is-invalid');
+                    });
+                });
+            }
+            
+            // Au focus, afficher toutes les options
+            input.addEventListener('focus', function() {
+                if (this.value.trim() === '') {
+                    showResults(dataSource);
+                }
+            });
+            
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                selectedIndex = -1;
+                
+                if (!searchTerm) {
+                    showResults(dataSource);
+                    hiddenInput.value = '';
+                    return;
+                }
+                
+                // Filtre LIKE (recherche partielle)
+                const filtered = dataSource.filter(item => 
+                    item[labelField].toLowerCase().includes(searchTerm)
+                );
+                
+                if (filtered.length === 0) {
+                    list.classList.remove('show');
+                    hiddenInput.value = '';
+                    return;
+                }
+                
+                showResults(filtered);
+            });
+            
+            // Navigation au clavier
+            input.addEventListener('keydown', function(e) {
+                const items = list.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateActiveItem(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, 0);
+                    updateActiveItem(items);
+                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    e.preventDefault();
+                    items[selectedIndex].click();
+                } else if (e.key === 'Escape') {
+                    list.classList.remove('show');
+                }
+            });
+            
+            function updateActiveItem(items) {
+                items.forEach((item, index) => {
+                    item.classList.toggle('active', index === selectedIndex);
+                });
+                if (items[selectedIndex]) {
+                    items[selectedIndex].scrollIntoView({ block: 'nearest' });
+                }
+            }
+            
+            // Fermer la liste quand on clique ailleurs
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    list.classList.remove('show');
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('detailForm');
+            const inputCategorie = document.getElementById('categorieDepense');
+            const hiddenIdCategorie = document.getElementById('idCategorieDepense');
+            
+            // Configurer l'autocomplete
+            setupAutocomplete(inputCategorie, categoriesData, 'idCategorieDepense', 'libelle');
+            
+            // Si modification, pré-remplir la catégorie
+            const idCategorieActuel = hiddenIdCategorie.value;
+            if (idCategorieActuel) {
+                const categorieActuelle = categoriesData.find(c => c.idCategorieDepense == idCategorieActuel);
+                if (categorieActuelle) {
+                    inputCategorie.value = categorieActuelle.libelle;
+                }
+            }
+            
+            // Validation du formulaire
+            form.addEventListener('submit', function(e) {
+                if (!hiddenIdCategorie.value) {
+                    e.preventDefault();
+                    inputCategorie.classList.add('is-invalid');
+                    return false;
+                }
+                return true;
+            });
+            
+            // Retirer l'erreur lors de la saisie
+            inputCategorie.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        });
+    </script>
+
+    <style>
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 0.25rem 0.25rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .autocomplete-list.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .autocomplete-item:hover, 
+        .autocomplete-item.active {
+            background: #435ebe;
+            color: white;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</section>

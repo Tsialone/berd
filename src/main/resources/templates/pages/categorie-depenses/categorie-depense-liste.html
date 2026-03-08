@@ -1,0 +1,208 @@
+<section class="section" th:fragment="page">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="card-title">Liste des catégories de dépense</h4>
+                <a th:href="@{/categorie-depenses/saisie}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Nouvelle catégorie
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Filtres -->
+            <form th:action="@{/categorie-depenses/liste}" method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-5 col-12 mb-2">
+                        <label class="form-label-sm">Recherche</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" 
+                                   name="search" 
+                                   class="form-control"
+                                   th:value="${search}"
+                                   placeholder="Rechercher par libellé...">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 col-12 mb-2">
+                        <label class="form-label-sm">Type</label>
+                        <input type="text" 
+                               name="type" 
+                               class="form-control form-control-sm"
+                               th:value="${type}"
+                               placeholder="Filtrer par type...">
+                    </div>
+                    
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label-sm">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-sm d-block w-100">
+                            <i class="bi bi-funnel me-1"></i> Filtrer
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-1 mb-2">
+                        <label class="form-label-sm">&nbsp;</label>
+                        <a th:href="@{/categorie-depenses/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Vue desktop: Tableau -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Libellé</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="cat, stat : ${categories}" th:data-id="${cat.idCategorieDepense}">
+                            <td th:text="${stat.index + 1 + (categories.number * categories.size)}">1</td>
+                            <td>
+                                <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
+                                   class="text-decoration-none fw-bold">
+                                    <span th:text="${cat.libelle}">Libellé</span>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-light-info" th:text="${cat.type}">Type</span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
+                                       class="btn btn-sm btn-info"
+                                       title="Voir la fiche">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/categorie-depenses/edit/{id}(id=${cat.idCategorieDepense})}" 
+                                       class="btn btn-sm btn-warning" 
+                                       title="Modifier">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger" 
+                                            title="Supprimer"
+                                            th:onclick="'supprimerCategorie(' + ${cat.idCategorieDepense} + ')'">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vue mobile: Cartes -->
+            <div class="d-md-none">
+                <div class="card mb-3" th:each="cat : ${categories}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
+                                       class="text-decoration-none"
+                                       th:text="${cat.libelle}">
+                                        Libellé
+                                    </a>
+                                </h6>
+                            </div>
+                            <span class="badge bg-light-info" th:text="${cat.type}">Type</span>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
+                                   class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{/categorie-depenses/edit/{id}(id=${cat.idCategorieDepense})}" 
+                                   class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        th:onclick="'supprimerCategorie(' + ${cat.idCategorieDepense} + ')'">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${categories.totalPages > 1}" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${categories.first} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="@{/categorie-depenses/liste(page=${categories.number - 1}, size=${categories.size}, search=${search}, type=${type})}">
+                            Précédent
+                        </a>
+                    </li>
+                    
+                    <li class="page-item" 
+                        th:each="i : ${#numbers.sequence(0, categories.totalPages - 1)}"
+                        th:if="${i >= categories.number - 2 && i <= categories.number + 2}"
+                        th:classappend="${i == categories.number} ? 'active'">
+                        <a class="page-link" 
+                           th:href="@{/categorie-depenses/liste(page=${i}, size=${categories.size}, search=${search}, type=${type})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+                    
+                    <li class="page-item" th:classappend="${categories.last} ? 'disabled'">
+                        <a class="page-link" 
+                           th:href="@{/categorie-depenses/liste(page=${categories.number + 1}, size=${categories.size}, search=${search}, type=${type})}">
+                            Suivant
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="text-center text-muted">
+                    <small>
+                        Page <span th:text="${categories.number + 1}">1</span> sur 
+                        <span th:text="${categories.totalPages}">1</span> 
+                        (<span th:text="${categories.totalElements}">0</span> catégorie(s))
+                    </small>
+                </div>
+            </nav>
+
+            <div th:if="${categories.totalElements == 0}" class="text-center py-5">
+                <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">Aucune catégorie trouvée</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-label-sm {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: #f8f9fa;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+    
+    <script>
+        function supprimerCategorie(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+                window.location.href = '/categorie-depenses/delete/' + id;
+            }
+        }
+    </script>
+</section>
