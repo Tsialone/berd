@@ -260,6 +260,57 @@
         const depenseFormFromSession = /*[[${depenseForm}]]*/ null;
         
         console.log('DepenseForm depuis session:', depenseFormFromSession);
+        console.log('CategoriesDetail chargées:', categoriesDetailData);
+        
+        // Variable pour stocker les catégories détail filtrées
+        let categoriesDetailFiltered = [...categoriesDetailData];
+        
+        // Fonction pour filtrer les catégories détail en fonction de la catégorie parente
+        function filtrerCategoriesDetail(idCategorieDepense) {
+            console.log('=== Filtrage catégories détail ===');
+            console.log('ID Catégorie parente sélectionnée:', idCategorieDepense);
+            
+            if (!idCategorieDepense || idCategorieDepense === '') {
+                // Pas de filtre : afficher toutes les catégories détail
+                categoriesDetailFiltered = [...categoriesDetailData];
+                console.log('Aucun filtre - Toutes les catégories:', categoriesDetailFiltered.length);
+            } else {
+                // Filtrer par idCategorieDepense (id_cd)
+                categoriesDetailFiltered = categoriesDetailData.filter(detail => {
+                    return detail.idCategorieDepense == idCategorieDepense;
+                });
+                console.log('Catégories filtrées:', categoriesDetailFiltered.length);
+            }
+            
+            // Vider les champs dont la valeur n'est plus valide
+            const autocompleteInputs = document.querySelectorAll('.autocomplete-cat');
+            console.log('Inputs à vérifier:', autocompleteInputs.length);
+            
+            autocompleteInputs.forEach((input) => {
+                const targetClass = input.getAttribute('data-target');
+                if (!targetClass) return;
+                
+                const hiddenInput = document.querySelector('.' + targetClass);
+                if (!hiddenInput) return;
+                
+                const currentValue = hiddenInput.value;
+                
+                // Vérifier si la valeur actuelle est toujours valide
+                if (currentValue) {
+                    const isStillValid = categoriesDetailFiltered.some(cat => 
+                        cat.idCategorieDepenseDetail == currentValue
+                    );
+                    
+                    if (!isStillValid) {
+                        console.log('Vidage du champ - valeur non valide:', currentValue);
+                        input.value = '';
+                        hiddenInput.value = '';
+                    }
+                }
+            });
+            
+            console.log('=== Fin filtrage ===');
+        }
         
         // Fonction pour formater les montants
         function formatMontant(montant) {
@@ -305,7 +356,7 @@
         }
         
         // Fonction pour créer un autocomplete
-        function setupAutocomplete(input, data, valueField, labelField) {
+        function setupAutocomplete(input, dataSource, valueField, labelField) {
             const wrapper = document.createElement('div');
             wrapper.className = 'autocomplete-wrapper';
             input.parentNode.insertBefore(wrapper, input);
@@ -320,6 +371,15 @@
             
             let selectedIndex = -1;
             let filteredData = [];
+            
+            // Fonction pour obtenir les données actuelles (prend en compte le filtre)
+            function getCurrentData() {
+                // Si c'est un autocomplete de catégorie détail, utiliser les données filtrées
+                if (input.classList.contains('autocomplete-cat')) {
+                    return categoriesDetailFiltered;
+                }
+                return dataSource;
+            }
             
             // Fonction pour afficher les résultats
             function showResults(items) {
@@ -345,6 +405,11 @@
                         input.value = label;
                         hiddenInput.value = value;
                         list.classList.remove('show');
+                        
+                        // Si c'est la catégorie principale, filtrer les catégories détail
+                        if (input.id === 'categorieDepense') {
+                            filtrerCategoriesDetail(value);
+                        }
                     });
                 });
             }
@@ -352,7 +417,7 @@
             // Au focus, afficher toutes les options
             input.addEventListener('focus', function() {
                 if (this.value.trim() === '') {
-                    showResults(data);
+                    showResults(getCurrentData());
                 }
             });
             
@@ -362,13 +427,19 @@
                 
                 if (!searchTerm) {
                     // Si vide, afficher tout
-                    showResults(data);
+                    showResults(getCurrentData());
                     hiddenInput.value = '';
+                    
+                    // Si c'est la catégorie principale vidée, réinitialiser le filtre
+                    if (input.id === 'categorieDepense') {
+                        filtrerCategoriesDetail(null);
+                    }
                     return;
                 }
                 
                 // Filtre LIKE (recherche partielle)
-                const filtered = data.filter(item => 
+                const currentData = getCurrentData();
+                const filtered = currentData.filter(item => 
                     item[labelField].toLowerCase().includes(searchTerm)
                 );
                 
@@ -501,7 +572,7 @@
             const catInput = div.querySelector('.autocomplete-cat');
             const uniteInput = div.querySelector('.autocomplete-unite');
             
-            setupAutocomplete(catInput, categoriesDetailData, 'idCategorieDepenseDetail', 'libelle');
+            setupAutocomplete(catInput, categoriesDetailFiltered, 'idCategorieDepenseDetail', 'libelle');
             setupAutocomplete(uniteInput, unitesData, 'idUnite', 'libelle');
             
             // Ajouter les événements pour calculer le total de la ligne
@@ -628,6 +699,8 @@
                 const categorie = categoriesData.find(c => c.idCategorieDepense == idCategorieInput.value);
                 if (categorie) {
                     categorieInput.value = categorie.libelle;
+                    // Appliquer le filtre immédiatement
+                    filtrerCategoriesDetail(idCategorieInput.value);
                 }
             }
             

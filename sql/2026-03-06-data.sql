@@ -24,12 +24,12 @@ INSERT INTO unite (libelle) VALUES
 ('forfait'); -- Forfait / Global
 
 
-INSERT INTO categorie_depense_detail (libelle, created) VALUES 
-('Vidange moteur', CURRENT_TIMESTAMP),
-('Plaquettes de frein', CURRENT_TIMESTAMP),
-('Achat riz', CURRENT_TIMESTAMP),
-('Légumes frais', CURRENT_TIMESTAMP),
-('Ticket de bus', CURRENT_TIMESTAMP),
-('Frais de parking', CURRENT_TIMESTAMP),
-('Facture internet', CURRENT_TIMESTAMP),
-('Abonnement Netflix', CURRENT_TIMESTAMP);
+INSERT INTO categorie_depense_detail (libelle, id_cd, created) VALUES 
+('Vidange moteur', 1, CURRENT_TIMESTAMP),
+('Plaquettes de frein', 1, CURRENT_TIMESTAMP),
+('Achat riz', 2, CURRENT_TIMESTAMP),
+('Légumes frais', 2, CURRENT_TIMESTAMP),
+('Ticket de bus', 3, CURRENT_TIMESTAMP),
+('Frais de parking', 3, CURRENT_TIMESTAMP),
+('Facture internet', 4, CURRENT_TIMESTAMP),
+('Abonnement Netflix', 4, CURRENT_TIMESTAMP);

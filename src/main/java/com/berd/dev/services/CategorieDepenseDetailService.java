@@ -1,5 +1,6 @@
 package com.berd.dev.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -14,7 +15,14 @@ import lombok.RequiredArgsConstructor;
 public class CategorieDepenseDetailService {
     private final CategorieDepenseDetailRepository categorieDepenseDetailRepository;
 
+
+    public List<CategorieDepenseDetail> getByIdCategorieDepense  (Integer idCd ){
+        if (idCd == null ) return new ArrayList<>();
+        return  categorieDepenseDetailRepository.findByIdCategorieDepense(idCd) ;
+
+    }
     public List<CategorieDepenseDetail> getAll() {
+        
         return categorieDepenseDetailRepository.findAll();
     }
 }

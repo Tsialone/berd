@@ -1,6 +1,8 @@
 package com.berd.dev.controllers;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -56,7 +58,8 @@ public class DepenseController {
 
     @GetMapping("/saisie")
     public String form(Model model, jakarta.servlet.http.HttpSession session) {
-        model.addAttribute("categoriesDetail", categorieDepenseDetailService.getAll());
+
+        model.addAttribute("categoriesDetail",categorieDepenseDetailService.getAll());
         model.addAttribute("categories", categorieDepenseService.getAll());
         model.addAttribute("unites", uniteService.getAll());
         
