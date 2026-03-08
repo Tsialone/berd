@@ -707,20 +707,29 @@
             
             // Convertir les fractions avant soumission
             document.getElementById('depenseForm').addEventListener('submit', function(e) {
-                // Désactiver les inputs des lignes non cochées
+                // Supprimer les lignes non cochées du DOM
                 document.querySelectorAll('.detail-item').forEach(item => {
                     const checkbox = item.querySelector('.detail-check');
                     if (!checkbox.checked) {
-                        item.querySelectorAll('input, select, textarea').forEach(input => {
-                            input.disabled = true;
-                        });
+                        item.remove();
                     }
                 });
                 
-                // Convertir les fractions pour les lignes cochées
+                // Réindexer les lignes restantes pour avoir des indices consécutifs (0, 1, 2...)
+                const remainingItems = document.querySelectorAll('.detail-item');
+                remainingItems.forEach((item, newIndex) => {
+                    // Mettre à jour tous les attributs name avec le nouvel index
+                    item.querySelectorAll('[name^="details["]').forEach(input => {
+                        const oldName = input.getAttribute('name');
+                        const fieldName = oldName.match(/\.(.+)$/)[1]; // Extraire le nom du champ après le point
+                        input.setAttribute('name', `details[${newIndex}].${fieldName}`);
+                    });
+                });
+                
+                // Convertir les fractions pour les lignes restantes
                 const qteInputs = document.querySelectorAll('.qte-input');
                 qteInputs.forEach(input => {
-                    if (!input.disabled && input.value.trim() !== '') {
+                    if (input.value.trim() !== '') {
                         const decimalValue = parseFraction(input.value);
                         input.value = decimalValue;
                     }
