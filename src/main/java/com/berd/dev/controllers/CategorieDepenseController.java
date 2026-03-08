@@ -50,6 +50,9 @@ public class CategorieDepenseController {
         model.addAttribute("categorieDepense", new CategorieDepense());
         model.addAttribute("isEdit", false);
         model.addAttribute("content", "pages/categorie-depenses/categorie-depense-saisie");
+
+        
+
         return "admin-layout";
     }
 

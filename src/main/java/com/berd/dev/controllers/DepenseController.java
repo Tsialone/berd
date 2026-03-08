@@ -76,6 +76,17 @@ public class DepenseController {
         return "admin-layout";
     }
 
+    @GetMapping("/annuler")
+    public String annuler(jakarta.servlet.http.HttpSession session, RedirectAttributes rd) {
+        // Nettoyer la session
+        session.removeAttribute("depenseForm");
+
+        rd.addFlashAttribute("toastMessage", "Opération annulée");
+        rd.addFlashAttribute("toastType", "info");
+
+        return "redirect:/depenses/liste";
+    }
+
     @PostMapping("/save")
     public String insert(@ModelAttribute DepenseForm form, RedirectAttributes rd,
             jakarta.servlet.http.HttpSession session) {
@@ -88,7 +99,7 @@ public class DepenseController {
             // Sauvegarder la dépense avec ses détails
             depenseService.save(form);
 
-            System.out.println(form.getDetails().size() + " taillle ");
+            // System.out.println(form.getDetails().size() + " taillle ");
 
             // Succès : supprimer le formulaire de la session
             session.removeAttribute("depenseForm");
