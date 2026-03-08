@@ -31,6 +31,22 @@
                     </ul>
 
                 </li>
+
+                <li class="sidebar-item  has-sub">
+                    <a href="#" class='sidebar-link'>
+                        <i class="bi bi-tag-fill"></i>
+                        <span>Catégories Dépenses</span>
+                    </a>
+                    <ul class="submenu ">
+                        <li class="submenu-item ">
+                            <a th:href="@{/categorie-depenses/liste}">Liste</a>
+                        </li>
+                        <li class="submenu-item ">
+                            <a th:href="@{/categorie-depenses/saisie}">Saisie</a>
+                        </li>
+                    </ul>
+
+                </li>
             </ul>
         </div>
         <button class="sidebar-toggler btn x"><i data-feather="x"></i></button>
