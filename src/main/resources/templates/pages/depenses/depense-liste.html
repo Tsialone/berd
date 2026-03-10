@@ -263,7 +263,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('[data-montant]').forEach(el => {
                 const montant = parseFloat(el.getAttribute('data-montant'));
-                el.textContent = formatMontant(montant) + ' Ar';
+                el.textContent = formatMontant(montant);
             });
         });
     </script>
