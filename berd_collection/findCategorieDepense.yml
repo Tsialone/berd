@@ -5,7 +5,11 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/api/CategorieDepenses/moto
+  url: http://localhost:8080/api/depenses/stats/barres?periode=journaliere
+  params:
+    - name: periode
+      value: journaliere
+      type: query
   auth: inherit
 
 settings:
