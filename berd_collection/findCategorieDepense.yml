@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/api/depenses/stats/courbe-categorie?periode=annuelle
+  url: http://localhost:8080/api/depenses/stats/barres?periode=journaliere
   params:
     - name: periode
-      value: annuelle
+      value: journaliere
       type: query
   auth: inherit
 

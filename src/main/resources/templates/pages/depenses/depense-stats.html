@@ -128,127 +128,7 @@
     </style>
 
     <script>
-        const depenseStatsFallbackData = {
-            journaliere: [
-                { label: 'Lundi', moyenne: 45000.25 },
-                { label: 'Mardi', moyenne: 39000.5 },
-                { label: 'Mercredi', moyenne: 52000.0 },
-                { label: 'Jeudi', moyenne: 48000.75 },
-                { label: 'Vendredi', moyenne: 61000.1 },
-                { label: 'Samedi', moyenne: 55000.0 },
-                { label: 'Dimanche', moyenne: 30000.4 }
-            ],
-            hebdomadaire: [
-                { label: '01/03 - 07/03', moyenne: 310000.0 },
-                { label: '08/03 - 14/03', moyenne: 285000.35 },
-                { label: '15/03 - 21/03', moyenne: 325000.0 },
-                { label: '22/03 - 28/03', moyenne: 298000.85 }
-            ],
-            mensuelle: [
-                { label: 'Janvier', moyenne: 1200000.0 },
-                { label: 'Février', moyenne: 1155000.75 },
-                { label: 'Mars', moyenne: 1290000.4 },
-                { label: 'Avril', moyenne: 1215000.0 },
-                { label: 'Mai', moyenne: 1330000.6 },
-                { label: 'Juin', moyenne: 1260000.0 }
-            ],
-            annuelle: [
-                { label: '2022', moyenne: 12800000.0 },
-                { label: '2023', moyenne: 13550000.5 },
-                { label: '2024', moyenne: 14900000.0 },
-                { label: '2025', moyenne: 15350000.25 }
-            ]
-        };
-
-        const depenseCategorieCourbeData = {
-            journaliere: {
-                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
-                series: [
-                    { name: 'Transport', values: [12000, 14000, 13000, 15000, 17000, 11000, 9000] },
-                    { name: 'Fournitures', values: [9000, 8000, 9500, 10000, 12000, 7000, 6000] },
-                    { name: 'Maintenance', values: [7000, 6000, 8000, 7500, 9000, 5000, 4500] }
-                ]
-            },
-            hebdomadaire: {
-                labels: ['01/03-07/03', '08/03-14/03', '15/03-21/03', '22/03-28/03'],
-                series: [
-                    { name: 'Transport', values: [95000, 102000, 98000, 105000] },
-                    { name: 'Fournitures', values: [64000, 58000, 70000, 62000] },
-                    { name: 'Maintenance', values: [42000, 39000, 45000, 41000] }
-                ]
-            },
-            mensuelle: {
-                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
-                series: [
-                    { name: 'Transport', values: [410000, 390000, 450000, 430000, 470000, 455000] },
-                    { name: 'Fournitures', values: [280000, 265000, 300000, 290000, 320000, 310000] },
-                    { name: 'Maintenance', values: [190000, 175000, 210000, 205000, 225000, 215000] }
-                ]
-            },
-            annuelle: {
-                labels: ['2022', '2023', '2024', '2025'],
-                series: [
-                    { name: 'Transport', values: [4500000, 5100000, 5800000, 6100000] },
-                    { name: 'Fournitures', values: [3200000, 3500000, 3900000, 4200000] },
-                    { name: 'Maintenance', values: [2100000, 2400000, 2700000, 3000000] }
-                ]
-            }
-        };
-
-        const depenseNombreData = {
-            journaliere: {
-                categories: [
-                    { label: 'Transport', value: 12 },
-                    { label: 'Fournitures', value: 9 },
-                    { label: 'Maintenance', value: 7 }
-                ],
-                sousCategories: [
-                    { label: 'Carburant', value: 5 },
-                    { label: 'Taxi', value: 4 },
-                    { label: 'Papeterie', value: 6 },
-                    { label: 'Réparation', value: 3 }
-                ]
-            },
-            hebdomadaire: {
-                categories: [
-                    { label: 'Transport', value: 38 },
-                    { label: 'Fournitures', value: 31 },
-                    { label: 'Maintenance', value: 22 }
-                ],
-                sousCategories: [
-                    { label: 'Carburant', value: 14 },
-                    { label: 'Taxi', value: 11 },
-                    { label: 'Papeterie', value: 18 },
-                    { label: 'Réparation', value: 9 }
-                ]
-            },
-            mensuelle: {
-                categories: [
-                    { label: 'Transport', value: 145 },
-                    { label: 'Fournitures', value: 122 },
-                    { label: 'Maintenance', value: 88 }
-                ],
-                sousCategories: [
-                    { label: 'Carburant', value: 52 },
-                    { label: 'Taxi', value: 43 },
-                    { label: 'Papeterie', value: 71 },
-                    { label: 'Réparation', value: 36 }
-                ]
-            },
-            annuelle: {
-                categories: [
-                    { label: 'Transport', value: 1760 },
-                    { label: 'Fournitures', value: 1430 },
-                    { label: 'Maintenance', value: 980 }
-                ],
-                sousCategories: [
-                    { label: 'Carburant', value: 640 },
-                    { label: 'Taxi', value: 510 },
-                    { label: 'Papeterie', value: 820 },
-                    { label: 'Réparation', value: 390 }
-                ]
-            }
-        };
+        
 
         function formatMontant(value) {
             const arrondi = Number(value || 0).toFixed(2);
@@ -306,18 +186,8 @@
                     payload.maxValue
                 );
             } catch (e) {
-                const fallbackData = (depenseStatsFallbackData[periodeKey] || []).map(item => ({
-                    label: item.label,
-                    depenseMoyenne: Number(item.moyenne || 0)
-                }));
-
-                const somme = fallbackData.reduce((acc, item) => acc + Number(item.depenseMoyenne || 0), 0);
-                const moyenneGlobale = fallbackData.length > 0 ? somme / fallbackData.length : 0;
-                const maxItem = fallbackData.length > 0
-                    ? fallbackData.reduce((max, item) => item.depenseMoyenne > max.depenseMoyenne ? item : max, fallbackData[0])
-                    : { label: '-', depenseMoyenne: 0 };
-
-                renderStatsFromData(fallbackData, moyenneGlobale, maxItem.label, maxItem.depenseMoyenne);
+                tbody.innerHTML = `<tr><td colspan="2" class="text-center text-danger">Erreur de chargement recap</td></tr>`;
+                renderStatsFromData([], 0, '-', 0);
             }
         }
 
@@ -450,7 +320,8 @@
                     series: payload.series || []
                 });
             } catch (e) {
-                renderCourbeCategorieFromConfig(depenseCategorieCourbeData[periodeKey]);
+                svg.innerHTML = '';
+                legend.innerHTML = '<small class="text-danger">Erreur de chargement courbe</small>';
             }
         }
 
@@ -525,10 +396,23 @@
             });
         }
 
-        function renderNbrDepenses(periodeKey) {
-            const cfg = depenseNombreData[periodeKey] || { categories: [], sousCategories: [] };
-            renderBarChart('nbrCategorieSvg', cfg.categories, '#0d6efd');
-            renderBarChart('nbrSousCategorieSvg', cfg.sousCategories, '#20c997');
+        function renderNbrDepensesFromData(payload) {
+            renderBarChart('nbrCategorieSvg', payload.nbrDepenseParCategorie || payload.categories || [], '#0d6efd');
+            renderBarChart('nbrSousCategorieSvg', payload.nbrDepenseParSousCategorie || payload.sousCategories || [], '#20c997');
+        }
+
+        async function renderNbrDepenses(periodeKey) {
+            try {
+                const response = await fetch(`/api/depenses/stats/barres?periode=${encodeURIComponent(periodeKey)}`);
+                if (!response.ok) {
+                    throw new Error('Erreur API barres');
+                }
+
+                const payload = await response.json();
+                renderNbrDepensesFromData(payload);
+            } catch (e) {
+                renderNbrDepensesFromData({ nbrDepenseParCategorie: [], nbrDepenseParSousCategorie: [] });
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {

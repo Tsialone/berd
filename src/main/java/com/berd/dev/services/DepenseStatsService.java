@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import com.berd.dev.dtos.CategorieCourbeResponseDto;
 import com.berd.dev.dtos.CategorieSerieDto;
+import com.berd.dev.dtos.NombreDepenseResponseDto;
+import com.berd.dev.dtos.NombrePointDto;
 import com.berd.dev.dtos.RecapPointDto;
 import com.berd.dev.dtos.RecapResponseDto;
 import com.berd.dev.models.Depense;
@@ -114,6 +116,65 @@ public class DepenseStatsService {
             return new CategorieCourbeResponseDto(periodeNormalisee, labels, series);
             }
 
+    public NombreDepenseResponseDto getNombreDepenses(String periode) {
+        String periodeNormalisee = normalizePeriode(periode);
+
+        List<Depense> depenses = depenseRepository.findAll().stream()
+                .filter(depense -> depense.getCreated() != null)
+                .sorted(Comparator.comparing(Depense::getCreated))
+                .toList();
+
+        if (depenses.isEmpty()) {
+            return new NombreDepenseResponseDto(periodeNormalisee, "-", List.of(), List.of());
+        }
+
+        Map<String, String> periodKeyToLabel = new LinkedHashMap<>();
+        for (Depense depense : depenses) {
+            String key = toPeriodKey(depense.getCreated(), periodeNormalisee);
+            periodKeyToLabel.putIfAbsent(key, toPeriodLabel(depense.getCreated(), periodeNormalisee));
+        }
+
+        List<String> periodKeys = new ArrayList<>(periodKeyToLabel.keySet());
+        String selectedPeriodKey = periodKeys.get(periodKeys.size() - 1);
+        String selectedPeriodLabel = periodKeyToLabel.getOrDefault(selectedPeriodKey, "-");
+
+        Map<String, Long> categoryCounts = new LinkedHashMap<>();
+        Map<String, Long> sousCategoryCounts = new LinkedHashMap<>();
+
+        depenses.stream()
+                .filter(depense -> toPeriodKey(depense.getCreated(), periodeNormalisee).equals(selectedPeriodKey))
+                .forEach(depense -> {
+                    String categorie = depense.getCategorieDepense() != null
+                            && depense.getCategorieDepense().getLibelle() != null
+                                    ? depense.getCategorieDepense().getLibelle()
+                                    : "Sans catégorie";
+                        categoryCounts.merge(categorie, 1L,
+                            (existingValue, newValue) -> (existingValue != null ? existingValue : 0L)
+                                + (newValue != null ? newValue : 0L));
+
+                    if (depense.getDepenseDetails() != null) {
+                        depense.getDepenseDetails().forEach(detail -> {
+                            String sousCategorie = detail.getCategorieDepenseDetail() != null
+                                    && detail.getCategorieDepenseDetail().getLibelle() != null
+                                            ? detail.getCategorieDepenseDetail().getLibelle()
+                                            : "Sans sous-catégorie";
+                                sousCategoryCounts.merge(sousCategorie, 1L,
+                                    (existingValue, newValue) -> (existingValue != null ? existingValue : 0L)
+                                        + (newValue != null ? newValue : 0L));
+                        });
+                    }
+                });
+
+        List<NombrePointDto> byCategorie = toNombrePointList(categoryCounts);
+        List<NombrePointDto> bySousCategorie = toNombrePointList(sousCategoryCounts);
+
+        return new NombreDepenseResponseDto(
+                periodeNormalisee,
+                selectedPeriodLabel,
+                byCategorie,
+                bySousCategorie);
+    }
+
     private String normalizePeriode(String periode) {
         if (periode == null || periode.isBlank()) {
             return "mensuelle";
@@ -175,5 +236,12 @@ public class DepenseStatsService {
             return 0.0;
         }
         return values.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+    }
+
+    private List<NombrePointDto> toNombrePointList(Map<String, Long> source) {
+        return source.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .map(entry -> new NombrePointDto(entry.getKey(), entry.getValue()))
+                .toList();
     }
 }

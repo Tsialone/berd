@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.berd.dev.dtos.CategorieCourbeResponseDto;
+import com.berd.dev.dtos.NombreDepenseResponseDto;
 import com.berd.dev.dtos.RecapResponseDto;
 import com.berd.dev.services.DepenseStatsService;
 
@@ -29,5 +30,11 @@ public class DepenseStatsRestController {
     public ResponseEntity<CategorieCourbeResponseDto> getCourbeCategorie(
             @RequestParam(defaultValue = "mensuelle") String periode) {
         return ResponseEntity.ok(depenseStatsService.getCourbeParCategorie(periode));
+    }
+
+    @GetMapping("/barres")
+    public ResponseEntity<NombreDepenseResponseDto> getBarres(
+            @RequestParam(defaultValue = "mensuelle") String periode) {
+        return ResponseEntity.ok(depenseStatsService.getNombreDepenses(periode));
     }
 }
