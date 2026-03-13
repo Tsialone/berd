@@ -1,0 +1,432 @@
+<section class="section" th:fragment="page">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 stats-header-tools">
+                <h4 class="card-title mb-0">Statistiques des dépenses</h4>
+                <div class="d-flex align-items-center gap-2 stats-period-wrap">
+                    <label for="periodeSelect" class="mb-0 text-muted small">Période</label>
+                    <select id="periodeSelect" class="form-select form-select-sm" style="min-width: 200px;">
+                        <option value="journaliere">Journalière</option>
+                        <option value="hebdomadaire">Hebdomadaire</option>
+                        <option value="mensuelle" selected>Mensuelle</option>
+                        <option value="annuelle">Annuelle</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100 bg-light-subtle">
+                        <p class="text-muted mb-1">Dépense moyenne par période</p>
+                        <h3 class="mb-0 text-primary" id="moyenneValue">0,00 Ar</h3>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100 bg-light-subtle">
+                        <p class="text-muted mb-1">Période avec moyenne max</p>
+                        <h5 class="mb-0" id="maxPeriodeLabel">-</h5>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded p-3 h-100 bg-light-subtle">
+                        <p class="text-muted mb-1">Valeur max</p>
+                        <h5 class="mb-0 text-success" id="maxPeriodeValue">0,00 Ar</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th class="text-end">Dépense moyenne</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 stats-header-tools">
+                <h4 class="card-title mb-0">Courbe des dépenses par catégorie</h4>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-3 mb-3" id="courbeLegend"></div>
+            <div class="border rounded p-2 chart-scroll-wrap">
+                <svg id="categorieCourbeSvg" class="chart-svg" viewBox="0 0 920 340" width="100%" height="340" role="img" aria-label="Courbe des dépenses par catégorie"></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Nombre de dépenses</h4>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <h6 class="mb-2">nbrDepenseParCategorie</h6>
+                    <div class="border rounded p-2 chart-scroll-wrap">
+                        <svg id="nbrCategorieSvg" class="bar-chart-svg" viewBox="0 0 560 300" width="100%" height="300" role="img" aria-label="Barres nombre de dépenses par catégorie"></svg>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <h6 class="mb-2">nbrDepenseParSousCategorie</h6>
+                    <div class="border rounded p-2 chart-scroll-wrap">
+                        <svg id="nbrSousCategorieSvg" class="bar-chart-svg" viewBox="0 0 560 300" width="100%" height="300" role="img" aria-label="Barres nombre de dépenses par sous-catégorie"></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .chart-scroll-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .chart-svg {
+            min-width: 920px;
+        }
+
+        .bar-chart-svg {
+            min-width: 560px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-header-tools {
+                align-items: stretch !important;
+            }
+
+            .stats-period-wrap {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .stats-period-wrap .form-select {
+                min-width: 0 !important;
+                width: 100%;
+            }
+
+            #courbeLegend {
+                gap: 0.5rem !important;
+            }
+
+            #courbeLegend small {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+
+    <script>
+        
+
+        function formatMontant(value) {
+            const arrondi = Number(value || 0).toFixed(2);
+            const [entier, decimal] = arrondi.split('.');
+            const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return `${entierFormate},${decimal} Ar`;
+        }
+
+        function renderStatsFromData(data, moyenneGlobale, maxLabel, maxValue) {
+            const tbody = document.getElementById('statsBody');
+            const moyenneValue = document.getElementById('moyenneValue');
+            const maxPeriodeLabel = document.getElementById('maxPeriodeLabel');
+            const maxPeriodeValue = document.getElementById('maxPeriodeValue');
+
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                moyenneValue.textContent = '0,00 Ar';
+                maxPeriodeLabel.textContent = '-';
+                maxPeriodeValue.textContent = '0,00 Ar';
+                return;
+            }
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.label}</td>
+                    <td class="text-end fw-semibold">${formatMontant(item.depenseMoyenne ?? item.moyenne ?? 0)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            moyenneValue.textContent = formatMontant(moyenneGlobale || 0);
+            maxPeriodeLabel.textContent = maxLabel || '-';
+            maxPeriodeValue.textContent = formatMontant(maxValue || 0);
+        }
+
+        async function renderStats(periodeKey) {
+            const tbody = document.getElementById('statsBody');
+            tbody.innerHTML = `<tr><td colspan="2" class="text-center text-muted">Chargement...</td></tr>`;
+
+            try {
+                const response = await fetch(`/api/depenses/stats/recap?periode=${encodeURIComponent(periodeKey)}`);
+                if (!response.ok) {
+                    throw new Error('Erreur API recap');
+                }
+
+                const payload = await response.json();
+                const data = payload.depenseMoyenneParPeriode || [];
+
+                renderStatsFromData(
+                    data,
+                    payload.moyenneGlobale,
+                    payload.maxLabel,
+                    payload.maxValue
+                );
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="2" class="text-center text-danger">Erreur de chargement recap</td></tr>`;
+                renderStatsFromData([], 0, '-', 0);
+            }
+        }
+
+        function renderCourbeCategorieFromConfig(cfg) {
+            const svg = document.getElementById('categorieCourbeSvg');
+            const legend = document.getElementById('courbeLegend');
+
+            if (!cfg || !cfg.labels || !cfg.series) {
+                svg.innerHTML = '';
+                legend.innerHTML = '';
+                return;
+            }
+
+            const colors = ['#435ebe', '#198754', '#dc3545', '#fd7e14', '#6f42c1'];
+            const width = 920;
+            const height = 340;
+            const padLeft = 60;
+            const padRight = 20;
+            const padTop = 20;
+            const padBottom = 50;
+            const chartW = width - padLeft - padRight;
+            const chartH = height - padTop - padBottom;
+            const maxVal = Math.max(...cfg.series.flatMap(s => s.values), 1);
+            const stepsY = 5;
+
+            svg.innerHTML = '';
+            legend.innerHTML = '';
+
+            for (let i = 0; i <= stepsY; i++) {
+                const y = padTop + (chartH / stepsY) * i;
+                const value = maxVal - (maxVal / stepsY) * i;
+
+                const grid = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                grid.setAttribute('x1', padLeft);
+                grid.setAttribute('x2', padLeft + chartW);
+                grid.setAttribute('y1', y);
+                grid.setAttribute('y2', y);
+                grid.setAttribute('stroke', '#e9ecef');
+                grid.setAttribute('stroke-width', '1');
+                svg.appendChild(grid);
+
+                const labelY = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelY.setAttribute('x', String(padLeft - 8));
+                labelY.setAttribute('y', String(y + 4));
+                labelY.setAttribute('text-anchor', 'end');
+                labelY.setAttribute('font-size', '11');
+                labelY.setAttribute('fill', '#6c757d');
+                labelY.textContent = formatMontant(value).replace(' Ar', '');
+                svg.appendChild(labelY);
+            }
+
+            const axisX = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            axisX.setAttribute('x1', padLeft);
+            axisX.setAttribute('x2', padLeft + chartW);
+            axisX.setAttribute('y1', padTop + chartH);
+            axisX.setAttribute('y2', padTop + chartH);
+            axisX.setAttribute('stroke', '#adb5bd');
+            svg.appendChild(axisX);
+
+            const axisY = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            axisY.setAttribute('x1', padLeft);
+            axisY.setAttribute('x2', padLeft);
+            axisY.setAttribute('y1', padTop);
+            axisY.setAttribute('y2', padTop + chartH);
+            axisY.setAttribute('stroke', '#adb5bd');
+            svg.appendChild(axisY);
+
+            cfg.labels.forEach((label, idx) => {
+                const x = padLeft + (chartW * idx) / Math.max(cfg.labels.length - 1, 1);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', String(x));
+                text.setAttribute('y', String(padTop + chartH + 20));
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '11');
+                text.setAttribute('fill', '#6c757d');
+                text.textContent = label;
+                svg.appendChild(text);
+            });
+
+            cfg.series.forEach((serie, sIdx) => {
+                const color = colors[sIdx % colors.length];
+                const points = serie.values.map((value, idx) => {
+                    const x = padLeft + (chartW * idx) / Math.max(cfg.labels.length - 1, 1);
+                    const y = padTop + chartH - (value / maxVal) * chartH;
+                    return { x, y, value };
+                });
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' '));
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', color);
+                path.setAttribute('stroke-width', '2.5');
+                svg.appendChild(path);
+
+                points.forEach(point => {
+                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot.setAttribute('cx', String(point.x));
+                    dot.setAttribute('cy', String(point.y));
+                    dot.setAttribute('r', '3');
+                    dot.setAttribute('fill', color);
+                    svg.appendChild(dot);
+                });
+
+                const legendItem = document.createElement('div');
+                legendItem.className = 'd-flex align-items-center gap-2';
+                legendItem.innerHTML = `
+                    <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};"></span>
+                    <small class="text-muted">${serie.name}</small>
+                `;
+                legend.appendChild(legendItem);
+            });
+        }
+
+        async function renderCourbeCategorie(periodeKey) {
+            const svg = document.getElementById('categorieCourbeSvg');
+            const legend = document.getElementById('courbeLegend');
+
+            svg.innerHTML = '';
+            legend.innerHTML = '<small class="text-muted">Chargement...</small>';
+
+            try {
+                const response = await fetch(`/api/depenses/stats/courbe-categorie?periode=${encodeURIComponent(periodeKey)}`);
+                if (!response.ok) {
+                    throw new Error('Erreur API courbe categorie');
+                }
+
+                const payload = await response.json();
+                renderCourbeCategorieFromConfig({
+                    labels: payload.labels || [],
+                    series: payload.series || []
+                });
+            } catch (e) {
+                svg.innerHTML = '';
+                legend.innerHTML = '<small class="text-danger">Erreur de chargement courbe</small>';
+            }
+        }
+
+        function renderBarChart(svgId, data, color) {
+            const svg = document.getElementById(svgId);
+            if (!svg) return;
+
+            const items = data || [];
+            const width = 560;
+            const height = 300;
+            const padLeft = 40;
+            const padRight = 16;
+            const padTop = 16;
+            const padBottom = 70;
+            const chartW = width - padLeft - padRight;
+            const chartH = height - padTop - padBottom;
+            const maxVal = Math.max(...items.map(i => Number(i.value || 0)), 1);
+
+            svg.innerHTML = '';
+
+            const axisX = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            axisX.setAttribute('x1', padLeft);
+            axisX.setAttribute('x2', padLeft + chartW);
+            axisX.setAttribute('y1', padTop + chartH);
+            axisX.setAttribute('y2', padTop + chartH);
+            axisX.setAttribute('stroke', '#adb5bd');
+            svg.appendChild(axisX);
+
+            const axisY = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            axisY.setAttribute('x1', padLeft);
+            axisY.setAttribute('x2', padLeft);
+            axisY.setAttribute('y1', padTop);
+            axisY.setAttribute('y2', padTop + chartH);
+            axisY.setAttribute('stroke', '#adb5bd');
+            svg.appendChild(axisY);
+
+            const gap = 14;
+            const barW = Math.max((chartW - gap * (items.length + 1)) / Math.max(items.length, 1), 18);
+
+            items.forEach((item, idx) => {
+                const value = Number(item.value || 0);
+                const barH = (value / maxVal) * chartH;
+                const x = padLeft + gap + idx * (barW + gap);
+                const y = padTop + chartH - barH;
+
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', String(x));
+                rect.setAttribute('y', String(y));
+                rect.setAttribute('width', String(barW));
+                rect.setAttribute('height', String(barH));
+                rect.setAttribute('rx', '4');
+                rect.setAttribute('fill', color);
+                svg.appendChild(rect);
+
+                const valText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                valText.setAttribute('x', String(x + barW / 2));
+                valText.setAttribute('y', String(y - 6));
+                valText.setAttribute('text-anchor', 'middle');
+                valText.setAttribute('font-size', '11');
+                valText.setAttribute('fill', '#495057');
+                valText.textContent = String(value);
+                svg.appendChild(valText);
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', String(x + barW / 2));
+                label.setAttribute('y', String(padTop + chartH + 18));
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '10');
+                label.setAttribute('fill', '#6c757d');
+                label.textContent = item.label;
+                svg.appendChild(label);
+            });
+        }
+
+        function renderNbrDepensesFromData(payload) {
+            renderBarChart('nbrCategorieSvg', payload.nbrDepenseParCategorie || payload.categories || [], '#0d6efd');
+            renderBarChart('nbrSousCategorieSvg', payload.nbrDepenseParSousCategorie || payload.sousCategories || [], '#20c997');
+        }
+
+        async function renderNbrDepenses(periodeKey) {
+            try {
+                const response = await fetch(`/api/depenses/stats/barres?periode=${encodeURIComponent(periodeKey)}`);
+                if (!response.ok) {
+                    throw new Error('Erreur API barres');
+                }
+
+                const payload = await response.json();
+                renderNbrDepensesFromData(payload);
+            } catch (e) {
+                renderNbrDepensesFromData({ nbrDepenseParCategorie: [], nbrDepenseParSousCategorie: [] });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('periodeSelect');
+
+            renderStats(select.value);
+            renderCourbeCategorie(select.value);
+            renderNbrDepenses(select.value);
+
+            select.addEventListener('change', (e) => {
+                renderStats(e.target.value);
+                renderCourbeCategorie(e.target.value);
+                renderNbrDepenses(e.target.value);
+            });
+        });
+    </script>
+</section>
