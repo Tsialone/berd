@@ -1,30 +1,44 @@
 package com.berd.dev.services;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import lombok.AllArgsConstructor;
 
 @Service
-@AllArgsConstructor
 public class EmailService {
 
-    private  final JavaMailSender mailSender; // Spring l'injecte grâce aux properties ci-dessus
+    @Value("${brevo.api.key}")
+    private String apiKey;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Async
     public void envoyerEmail(String vers, String sujet, String contenu) {
+        String url = "https://api.brevo.com/v3/smtp/email";
+
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(vers);
-        message.setSubject(sujet);
-        message.setText(contenu);
-        mailSender.send(message);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("api-key", apiKey);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // JSON simple pour Brevo
+            String jsonBody = String.format(
+                "{\"sender\":{\"email\":\"tsialone1902@gmail.com\"},\"to\":[{\"email\":\"%s\"}],\"subject\":\"%s\",\"htmlContent\":\"%s\"}",
+                vers, sujet, contenu
+            );
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+            restTemplate.postForEntity(url, entity, String.class);
+            
+            System.out.println("Email envoyé via API Brevo !");
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println(e.getMessage());
+            System.err.println("Erreur Render/Brevo : " + e.getMessage());
         }
-        
     }
 }
+
 

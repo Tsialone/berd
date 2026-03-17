@@ -23,9 +23,6 @@ public class HomeController {
 
     private final UserService userService;
 
-
-    
-
     @GetMapping("/activate")
     public String activate(@RequestParam("token") String token, Model model, RedirectAttributes rd,
             HttpServletRequest request) {
@@ -94,7 +91,7 @@ public class HomeController {
     }
 
     @GetMapping("/signin")
-    public String sign(Model model , HttpServletRequest request) {
+    public String sign(Model model, HttpServletRequest request) {
 
         User user = (User) request.getSession().getAttribute("user");
         model.addAttribute("user", user);
@@ -107,10 +104,9 @@ public class HomeController {
 
         try {
             System.out.println(user);
-            String currPassword =  new String(user.getPassword()) ;
+            String currPassword = new String(user.getPassword());
             userService.save(user, request);
             user.setPassword(currPassword);
-            rd.addFlashAttribute("user", user);
         } catch (Exception e) {
             e.printStackTrace();
             rd.addFlashAttribute("toastMessage", e.getMessage());
@@ -121,15 +117,13 @@ public class HomeController {
                 "Inscription réussie! Veuillez vérifier votre email pour activer votre compte.");
         rd.addFlashAttribute("toastType", "success");
 
-
         System.out.println(user);
 
+        rd.addFlashAttribute("user", user);
         request.getSession().setAttribute("user", user);
 
         return "redirect:/signin";
     }
-
-
 
     // @GetMapping("/logout")
     // public String logout(Model model, HttpSession session) {
