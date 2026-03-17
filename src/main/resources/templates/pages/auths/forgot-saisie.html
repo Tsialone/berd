@@ -9,6 +9,15 @@
     <link rel="stylesheet" th:href="@{/assets/vendors/bootstrap-icons/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/assets/css/app.css}">
     <link rel="stylesheet" th:href="@{/assets/css/pages/auth.css}">
+    <style>
+        .search-results-scroll {
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: .25rem;
+        }
+    </style>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 
 <body>
@@ -19,17 +28,22 @@
                     <h1 class="auth-title">Forgot Password</h1>
                     <p class="auth-subtitle mb-5">Saisissez votre nom d'utilisateur pour réinitialiser votre mot de passe.</p>
 
-                    <!-- On change l'action vers /forgot-password -->
-                    <form th:action="@{/forgot-password}" method="post">
+                    <form id="searchUserForm">
                         <div class="form-group position-relative has-icon-left mb-4">
                             <input type="text" class="form-control form-control-xl" 
-                                   placeholder="Nom d'utilisateur" name="username" required>
+                                   placeholder="Nom d'utilisateur" id="usernameSearch" required>
                             <div class="form-control-icon">
                                 <i class="bi bi-person"></i>
                             </div>
                         </div>
-                        <button class="btn btn-primary btn-block btn-lg shadow-lg mt-3">Envoyer le lien</button>
+                        <button type="submit" id="searchButton" class="btn btn-primary btn-block btn-lg shadow-lg mt-3">Rechercher</button>
                     </form>
+
+                    <form id="forgotPasswordForm" th:action="@{/forgot-password}" method="post" style="display:none;">
+                        <input type="hidden" name="username" id="selectedUsername">
+                    </form>
+
+                    <div id="searchResults" class="mt-4"></div>
                     
                     <div class="text-center mt-5 text-lg fs-4">
                         <p class='text-gray-600'>Vous vous en souvenez ? 
@@ -58,6 +72,157 @@
                 toast: true, position: 'top-right', showConfirmButton: false,
                 timer: 5000, timerProgressBar: true, icon: type, title: msg
             });
+        }
+
+        const searchForm = document.getElementById('searchUserForm');
+        const searchButton = document.getElementById('searchButton');
+        const usernameSearch = document.getElementById('usernameSearch');
+        const searchResults = document.getElementById('searchResults');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const selectedUsername = document.getElementById('selectedUsername');
+        const defaultSearchButtonLabel = searchButton.innerHTML;
+
+        const escapeHtml = (value) => {
+            const div = document.createElement('div');
+            div.innerText = value ?? '';
+            return div.innerHTML;
+        };
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const keyword = usernameSearch.value.trim();
+            if (!keyword) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            searchButton.disabled = true;
+            searchButton.innerHTML = 'Recherche...';
+            searchResults.innerHTML = '<p class="text-muted">Recherche en cours...</p>';
+
+            try {
+                const response = await fetch(`/public_api/users/getByLikeName?name=${encodeURIComponent(keyword)}`);
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la recherche des utilisateurs');
+                }
+
+                const users = await response.json();
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    searchResults.innerHTML = '<div class="alert alert-warning mb-0">Aucun utilisateur trouvé.</div>';
+                    return;
+                }
+
+                renderUsers(users);
+                attachSendHandlers();
+            } catch (error) {
+                searchResults.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(error.message)}</div>`;
+            } finally {
+                searchButton.disabled = false;
+                searchButton.innerHTML = defaultSearchButtonLabel;
+            }
+        });
+
+        // render function reused for initial fetch and after sendRequest
+        function renderUsers(users) {
+            searchResults.innerHTML = `
+                <div class="card mt-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Résultats</h4>
+                        <span class="badge bg-light-primary">${users.length}</span>
+                    </div>
+                    <div class="card-body search-results-scroll">
+                        ${users.map((user) => {
+                            const isActive = !!user.active;
+                            const badgeClass = isActive ? 'bg-light-success text-success' : 'bg-light-danger text-danger';
+                            const badgeLabel = isActive ? 'Actif' : 'Inactif';
+                            const sendButton = isActive
+                                ? `<button type="button" class="btn btn-primary btn-sm btn-send-link" data-username="${escapeHtml(user.username)}">
+                                        <i class="bi bi-send me-1"></i>Envoyer
+                                   </button>`
+                                : '';
+
+                            return `
+                                <div class="card border shadow-none mb-3">
+                                    <div class="card-body py-3 px-3">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar avatar-md bg-light-primary me-3">
+                                                    <span class="avatar-content">
+                                                        <i class="bi bi-person"></i>
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">${escapeHtml(user.username)}</h6>
+                                                    <p class="text-muted mb-0">${escapeHtml(user.maskedEmail)}</p>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                                <span class="badge ${badgeClass}">
+                                                    <i class="bi bi-circle-fill me-1" style="font-size: .55rem;"></i>${badgeLabel}
+                                                </span>
+                                                ${sendButton}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // attach handlers to Envoyer buttons to call POST API
+        function attachSendHandlers() {
+            document.querySelectorAll('.btn-send-link').forEach((btn) => {
+                btn.removeEventListener('click', onSendClick);
+                btn.addEventListener('click', onSendClick);
+            });
+        }
+
+        async function onSendClick(e) {
+            const btn = e.currentTarget;
+            const username = btn.getAttribute('data-username');
+            const originalLabel = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Envoi...';
+
+            try {
+                // CSRF headers if present
+                console.log ("Sending reset request for username:", username);
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+
+                const headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                };
+                if (csrfToken) headers[csrfHeader] = csrfToken;
+
+                const body = `username=${encodeURIComponent(username)}`;
+
+                const resp = await fetch('/public_api/users/sendRequest', {
+                    method: 'POST',
+                    headers: headers,
+                    body: body,
+                    credentials: 'same-origin'
+                });
+
+                if (!resp.ok) throw new Error('Échec de la requête');
+
+                const users = await resp.json();
+                if (Array.isArray(users)) {
+                    renderUsers(users);
+                    attachSendHandlers();
+                }
+            } catch (err) {
+                console.error('Error sending reset request:', err);
+                Swal.fire({ icon: 'error', title: 'Erreur', text: err.message });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalLabel;
+            }
         }
     </script>
 </body>

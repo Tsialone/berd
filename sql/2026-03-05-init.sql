@@ -52,9 +52,12 @@ CREATE TABLE utilisateur(
    mdp VARCHAR(50)  NOT NULL,
    role VARCHAR(50) ,
    active BOOLEAN NOT NULL,
-   validation_token VARCHAR(500) ,
+   validation_token VARCHAR(500),
+   reset_token VARCHAR(500),
+
    email VARCHAR(255)  NOT NULL,
    created_token TIMESTAMP NULL,
+   created_reset_token TIMESTAMP NULL,
    PRIMARY KEY(id_utilisateur),
    UNIQUE(nom),
    UNIQUE(email)

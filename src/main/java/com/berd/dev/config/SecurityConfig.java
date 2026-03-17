@@ -1,7 +1,5 @@
 package com.berd.dev.config;
 
-import javax.security.auth.login.CredentialException;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,7 +20,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/activate", "/forgot", "/signin", "/assets/**").permitAll()
+                    .requestMatchers("/", "/activate", "/forgot", "/signin", "/public_api/**", "/assets/**" , "/forgot-reset" , "/reset-password").permitAll()
                         .requestMatchers("/api/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN") // Reservé Admin
                         .anyRequest().authenticated() // Tout le reste protégé

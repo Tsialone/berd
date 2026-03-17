@@ -8,11 +8,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.berd.dev.utils.jackson.EmailMaskingSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Entity(name = "utilisateur")
@@ -31,20 +37,34 @@ public class User implements UserDetails {
 
     private String role = "ROLE_USER";
 
-    private boolean active = false; 
+    private boolean active = false;
 
-    
     @Column(name = "validation_token")
-    private String validationToken; 
+    private String validationToken;
 
     @Column(name = "created_token")
     private LocalDateTime createdToken;
 
+    @Column(name = "created_reset_token")
+    private LocalDateTime createdResetToken;
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
     @Column(unique = true, name = "email", nullable = false)
     private String email;
 
-    
-    // Getters et Setters...
+    @Transient
+    @JsonProperty("maskedEmail")
+    @JsonSerialize(using = EmailMaskingSerializer.class)
+    public String getMaskedEmail() {
+        return this.email;
+    }
+
+    @JsonIgnore
+    public String getEmail() {
+        return this.email;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

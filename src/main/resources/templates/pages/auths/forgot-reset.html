@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password - Mazer Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.css}">
+    <link rel="stylesheet" th:href="@{/assets/vendors/bootstrap-icons/bootstrap-icons.css}">
+    <link rel="stylesheet" th:href="@{/assets/css/app.css}">
+    <link rel="stylesheet" th:href="@{/assets/css/pages/auth.css}">
+</head>
+
+<body>
+    <div id="auth">
+        <div class="row h-100">
+            <div class="col-lg-5 col-12">
+                <div id="auth-left">
+                    <h1 class="auth-title">Réinitialiser le mot de passe</h1>
+                    <p class="auth-subtitle mb-4">Choisissez un nouveau mot de passe pour votre compte.</p>
+
+                    <div th:if="${session.userReset != null}" class="mb-3">
+                        <small class="text-muted">Compte :</small>
+                        <div>
+                            <strong th:text="${session.userReset.username}">nom_utilisateur</strong>
+                            <div class="text-muted small" th:text="${session.userReset.maskedEmail}"></div>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/forgot-reset}" method="post">
+                        <div class="form-group position-relative has-icon-left mb-3">
+                            <input th:value="${pass1}"  id="pass1" name="pass1" type="password" class="form-control form-control-xl"
+                                   placeholder="Nouveau mot de passe" required>
+                            <div class="form-control-icon right" style="cursor:pointer;" onclick="togglePassword('pass1','toggleEye1')">
+                                <i id="toggleEye1" class="bi bi-eye"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group position-relative has-icon-left mb-3">
+                            <input th:value="${pass2}" id="pass2" name="pass2" type="password" class="form-control form-control-xl"
+                                   placeholder="Confirmez le nouveau mot de passe" required>
+                            <div class="form-control-icon right" style="cursor:pointer;" onclick="togglePassword('pass2','toggleEye2')">
+                                <i id="toggleEye2" class="bi bi-eye"></i>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-3">Réinitialiser</button>
+                    </form>
+
+                    <div class="text-center mt-4 text-lg fs-4">
+                        <p class='text-gray-600'>Vous vous souvenez ?
+                            <a th:href="@{/}" class="font-bold">Se connecter</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7 d-none d-lg-block">
+                <div id="auth-right" style="background-image: url('/assets/images/bg/finance.jpg'); 
+                background-size: cover; background-position: center; height: 100vh;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastData" th:data-message="${toastMessage}" th:data-type="${toastType}" style="display:none"></div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const toastDiv = document.getElementById('toastData');
+        const msg = toastDiv.getAttribute('data-message');
+        const type = toastDiv.getAttribute('data-type');
+        if (msg && msg !== "null") {
+            Swal.fire({
+                toast: true, position: 'top-right', showConfirmButton: false,
+                timer: 5000, timerProgressBar: true, icon: type, title: msg
+            });
+        }
+
+        function togglePassword(inputId, eyeId) {
+            const input = document.getElementById(inputId);
+            const eye = document.getElementById(eyeId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.classList.remove('bi-eye');
+                eye.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                eye.classList.remove('bi-eye-slash');
+                eye.classList.add('bi-eye');
+            }
+        }
+    </script>
+</body>
+</html>
