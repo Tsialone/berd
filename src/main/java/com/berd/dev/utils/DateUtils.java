@@ -1,6 +1,7 @@
 package com.berd.dev.utils;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class DateUtils {
 
@@ -18,6 +19,10 @@ public class DateUtils {
         }
 
         return !b.isBefore(c) && !a.isAfter(d);
+    }
+
+    public static long differenceEnMinutes(LocalDateTime debut, LocalDateTime fin) {
+        return ChronoUnit.MINUTES.between(debut, fin);
     }
 
 }

@@ -33,3 +33,7 @@ INSERT INTO categorie_depense_detail (libelle, id_cd, created) VALUES
 ('Frais de parking', 3, CURRENT_TIMESTAMP),
 ('Facture internet', 4, CURRENT_TIMESTAMP),
 ('Abonnement Netflix', 4, CURRENT_TIMESTAMP);
+
+
+INSERT INTO param (libelle, valeur) VALUES 
+('expiration_token', '5'); -- Durée de validité des tokens en minutes

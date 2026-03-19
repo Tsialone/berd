@@ -10,6 +10,57 @@
     <link rel="stylesheet" th:href="@{/assets/vendors/bootstrap-icons/bootstrap-icons.css}">
     <link rel="stylesheet" th:href="@{/assets/css/app.css}">
     <link rel="stylesheet" th:href="@{/assets/css/pages/auth.css}">
+    <link rel="icon" th:href="@{/assets/images/logo/logo.png}" type="image/png">
+    <style>
+        .custom-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .custom-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: #2b2b2b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            right: 0;
+            /* Align right to avoid screen overflow */
+            margin-right: -10px;
+            /* Slight offset */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            right: 15px;
+            /* Arrow pointing to the icon */
+            border-width: 5px;
+            border-style: solid;
+            border-color: #2b2b2b transparent transparent transparent;
+        }
+
+        .custom-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 576px) {
+            .custom-tooltip .tooltip-text {
+                width: 200px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -32,14 +83,28 @@
                             </div>
                         </div> -->
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="text" class="form-control form-control-xl" placeholder="Username" name="nom">
+                            <input type="text" class="form-control form-control-xl" placeholder="Username"
+                                name="username" th:value="${user?.username}">
                             <div class="form-control-icon">
                                 <i class="bi bi-person"></i>
                             </div>
                         </div>
                         <div class="form-group position-relative has-icon-left mb-4">
+                            <input type="email" class="form-control form-control-xl" placeholder="Email" name="email"
+                                th:value="${user?.email}" style="padding-right: 3rem;">
+                            <div class="form-control-icon">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div class="form-control-icon custom-tooltip" style="left: auto; right: 0; cursor: help;">
+                                <i class="bi bi-exclamation-circle text-warning"></i>
+                                <span class="tooltip-text">L'email est indispensable pour récupérer un mot de passe
+                                    oublié et pour l'activation.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group position-relative has-icon-left mb-4">
                             <input id="password" type="password" class="form-control form-control-xl"
-                                placeholder="Password" name="passe">
+                                placeholder="Password" name="password" th:value="${user?.password}">
                             <!-- <div class="form-control-icon">
                                 <i class="bi bi-shield-lock"></i>
                             </div> -->
@@ -53,7 +118,12 @@
                                 <i class="bi bi-shield-lock"></i>
                             </div>
                         </div> -->
-                        <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Sign Up</button>
+                        <button th:if="${user?.validationToken == null}" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">
+                            Sign Up
+                        </button>
+                         <button th:if="${user?.validationToken != null}" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">
+                            Renvoyer
+                        </button>
                     </form>
                     <div class="text-center mt-5 text-lg fs-4">
                         <p class='text-gray-600'>Already have an account? <a th:href="@{/}" class="font-bold">Log
@@ -78,11 +148,13 @@
         const toastDiv = document.getElementById('toastData');
         const msg = toastDiv.getAttribute('data-message');
         const type = toastDiv.getAttribute('data-type');
+        console.log("Toast message:", msg);
+        console.log("Toast type:", type);
 
         if (msg) {
             Swal.fire({
                 toast: true,
-                position: 'top',
+                position: 'top-right',
                 showConfirmButton: false,
                 timer: 5000,
                 timerProgressBar: true,
