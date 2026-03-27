@@ -171,7 +171,8 @@ public class HomeController {
 
     @PostMapping("/signin")
     public String sign(User user, RedirectAttributes rd, HttpServletRequest request) {
-
+        rd.addFlashAttribute("user", user);
+        request.getSession().setAttribute("user", user);
         try {
             System.out.println(user);
             String currPassword = new String(user.getPassword());
@@ -189,8 +190,7 @@ public class HomeController {
 
         System.out.println(user);
 
-        rd.addFlashAttribute("user", user);
-        request.getSession().setAttribute("user", user);
+        
 
         return "redirect:/signin";
     }
