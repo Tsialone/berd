@@ -1,11 +1,11 @@
 CREATE TABLE utilisateur(
    id_utilisateur SERIAL,
-   nom VARCHAR(50)  NOT NULL,
-   mdp VARCHAR(50)  NOT NULL,
+   nom TEXT NOT NULL,
+   mdp TEXT NOT NULL,
    role VARCHAR(50) ,
    active BOOLEAN NOT NULL,
-   validation_token VARCHAR(500),
-   reset_token VARCHAR(500),
+   validation_token TEXT,
+   reset_token TEXT,
    email VARCHAR(255)  NOT NULL,
    created_token TIMESTAMP NULL,
    created_reset_token TIMESTAMP NULL,
@@ -13,6 +13,8 @@ CREATE TABLE utilisateur(
    UNIQUE(nom),
    UNIQUE(email)
 );
+
+
 
 
 
@@ -53,14 +55,14 @@ CREATE TABLE categorie_depense_detail(
    id_cd INTEGER NOT NULL,
    id_utilisateur INTEGER,
    PRIMARY KEY(id_cdd),
-   FOREIGN KEY(id_cd) REFERENCES categorie_depense(id_cd)
+   FOREIGN KEY(id_cd) REFERENCES categorie_depense(id_cd),
    FOREIGN KEY(id_utilisateur) REFERENCES utilisateur(id_utilisateur)
 );
 
 CREATE TABLE depense_detail(
    id_depense_detail SERIAL,
-   qte NUMERIC(15,2)   NOT NULL,
-   pu NUMERIC(15,2)   NOT NULL,
+   qte DOUBLE PRECISION NOT NULL,
+   pu DOUBLE PRECISION NOT NULL,
    created TIMESTAMP NOT NULL,
    designation VARCHAR(50) ,
    id_depense INTEGER NOT NULL,
@@ -71,6 +73,8 @@ CREATE TABLE depense_detail(
    FOREIGN KEY(id_cdd) REFERENCES categorie_depense_detail(id_cdd),
    FOREIGN KEY(id_unite) REFERENCES unite(id_unite)
 );
+
+
 
 
 

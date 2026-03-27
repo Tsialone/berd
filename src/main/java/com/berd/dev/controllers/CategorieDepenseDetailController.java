@@ -1,6 +1,5 @@
 package com.berd.dev.controllers;
 
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -38,11 +37,12 @@ public class CategorieDepenseDetailController {
             @RequestParam(defaultValue = "10") int size,
             Model model) {
         boolean all = false;
-        if (allParam != null && !allParam.isEmpty() && allParam.equals("on"))
+        if (allParam != null  && allParam.equals("on"))
             all = true;
         Page<CategorieDepenseDetail> details = detailService.getFilteredDetails(search, categorieId, page, size , all);
 
         model.addAttribute("details", details);
+        model.addAttribute("all", all);
         model.addAttribute("categories", categorieService.getAll());
         model.addAttribute("search", search);
         model.addAttribute("categorieId", categorieId);

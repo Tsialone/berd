@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.berd.dev.dtos.UserDto;
+import com.berd.dev.mappers.UserMapper;
 import com.berd.dev.models.User;
 import com.berd.dev.repositories.ParamRepository;
 import com.berd.dev.repositories.UserRepository;
@@ -94,11 +96,13 @@ public class UserService implements UserDetailsService {
 
     }
 
-    public List<User> getByLikeName(String username) {
+    public List<UserDto> getByLikeName(String username) {
         if (username == null || username.trim().isEmpty()) {
             return List.of();
         }
-        return userRepository.findByUsernameContainingIgnoreCase(username.trim());
+        List<User> existingUsers =  userRepository.findByUsernameContainingIgnoreCase(username.trim());
+
+        return UserMapper.toDtos(existingUsers);
     }
 
     public User save(User user, HttpServletRequest request) {
