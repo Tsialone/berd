@@ -101,7 +101,10 @@ public class UserService implements UserDetailsService {
             return List.of();
         }
         List<User> existingUsers =  userRepository.findByUsernameContainingIgnoreCase(username.trim());
-
+        // System.out.println(existingUsers);
+        for (User user : existingUsers) {
+            System.out.println(user.getMaskedEmail());
+        }
         return UserMapper.toDtos(existingUsers);
     }
 

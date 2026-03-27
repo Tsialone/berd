@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.berd.dev.utils.ConstanteUtils;
+import com.berd.dev.utils.EmailUtil;
 import com.berd.dev.utils.jackson.EmailMaskingSerializer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -65,9 +66,10 @@ public class User implements UserDetails {
 
     @Transient
     @JsonProperty("maskedEmail")
-    @JsonSerialize(using = EmailMaskingSerializer.class)
     public String getMaskedEmail() {
-        return this.email;
+        
+        return  EmailUtil.maskEmail(email);
+        
     }
 
     @Transient
