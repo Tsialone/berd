@@ -16,35 +16,44 @@
                         <label class="form-label-sm">Recherche</label>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" 
-                                   name="search" 
-                                   class="form-control"
-                                   th:value="${search}"
-                                   placeholder="Rechercher par libellé...">
+                            <input type="text" name="search" class="form-control" th:value="${search}"
+                                placeholder="Rechercher par libellé...">
                         </div>
                     </div>
-                    
+
                     <div class="col-md-4 col-12 mb-2">
                         <label class="form-label-sm">Type</label>
-                        <input type="text" 
-                               name="type" 
-                               class="form-control form-control-sm"
-                               th:value="${type}"
-                               placeholder="Filtrer par type...">
+                        <input type="text" name="type" class="form-control form-control-sm" th:value="${type}"
+                            placeholder="Filtrer par type...">
                     </div>
-                    
+
+
+
                     <div class="col-md-2 mb-2">
                         <label class="form-label-sm">&nbsp;</label>
                         <button type="submit" class="btn btn-primary btn-sm d-block w-100">
                             <i class="bi bi-funnel me-1"></i> Filtrer
                         </button>
                     </div>
-                    
+
+
                     <div class="col-md-1 mb-2">
                         <label class="form-label-sm">&nbsp;</label>
-                        <a th:href="@{/categorie-depenses/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+                        <a th:href="@{/categorie-depenses/liste}" class="btn btn-secondary btn-sm d-block"
+                            title="Réinitialiser les filtres">
                             <i class="bi bi-arrow-clockwise"></i>
                         </a>
+                    </div>
+
+                    <div class="col-md-4 col-12 mb-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="all" name="all"
+                                th:checked="${all}" 
+                                >
+                            <label class="form-check-label" for="tout">
+                                Tout
+                            </label>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -65,7 +74,7 @@
                             <td th:text="${stat.index + 1 + (categories.number * categories.size)}">1</td>
                             <td>
                                 <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
-                                   class="text-decoration-none fw-bold">
+                                    class="text-decoration-none fw-bold">
                                     <span th:text="${cat.libelle}">Libellé</span>
                                 </a>
                             </td>
@@ -75,19 +84,15 @@
                             <td>
                                 <div class="btn-group btn-group-sm">
                                     <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
-                                       class="btn btn-sm btn-info"
-                                       title="Voir la fiche">
+                                        class="btn btn-sm btn-info" title="Voir la fiche">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a th:href="@{/categorie-depenses/edit/{id}(id=${cat.idCategorieDepense})}" 
-                                       class="btn btn-sm btn-warning" 
-                                       title="Modifier">
+                                    <a th:href="@{/categorie-depenses/edit/{id}(id=${cat.idCategorieDepense})}"
+                                        class="btn btn-sm btn-warning" title="Modifier">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <button type="button"
-                                            class="btn btn-sm btn-danger" 
-                                            title="Supprimer"
-                                            th:onclick="'supprimerCategorie(' + ${cat.idCategorieDepense} + ')'">
+                                    <button type="button" class="btn btn-sm btn-danger" title="Supprimer"
+                                        th:onclick="'supprimerCategorie(' + ${cat.idCategorieDepense} + ')'">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -105,8 +110,7 @@
                             <div>
                                 <h6 class="mb-1">
                                     <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
-                                       class="text-decoration-none"
-                                       th:text="${cat.libelle}">
+                                        class="text-decoration-none" th:text="${cat.libelle}">
                                         Libellé
                                     </a>
                                 </h6>
@@ -116,16 +120,15 @@
                         <div class="d-flex justify-content-end">
                             <div class="btn-group btn-group-sm">
                                 <a th:href="@{/categorie-depenses/fiche/{id}(id=${cat.idCategorieDepense})}"
-                                   class="btn btn-sm btn-info">
+                                    class="btn btn-sm btn-info">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a th:href="@{/categorie-depenses/edit/{id}(id=${cat.idCategorieDepense})}" 
-                                   class="btn btn-sm btn-warning">
+                                <a th:href="@{/categorie-depenses/edit/{id}(id=${cat.idCategorieDepense})}"
+                                    class="btn btn-sm btn-warning">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
-                                <button type="button"
-                                        class="btn btn-sm btn-danger"
-                                        th:onclick="'supprimerCategorie(' + ${cat.idCategorieDepense} + ')'">
+                                <button type="button" class="btn btn-sm btn-danger"
+                                    th:onclick="'supprimerCategorie(' + ${cat.idCategorieDepense} + ')'">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -138,33 +141,32 @@
             <nav th:if="${categories.totalPages > 1}" class="mt-4">
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${categories.first} ? 'disabled'">
-                        <a class="page-link" 
-                           th:href="@{/categorie-depenses/liste(page=${categories.number - 1}, size=${categories.size}, search=${search}, type=${type})}">
+                        <a class="page-link"
+                            th:href="@{/categorie-depenses/liste(page=${categories.number - 1}, size=${categories.size}, search=${search}, type=${type})}">
                             Précédent
                         </a>
                     </li>
-                    
-                    <li class="page-item" 
-                        th:each="i : ${#numbers.sequence(0, categories.totalPages - 1)}"
+
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, categories.totalPages - 1)}"
                         th:if="${i >= categories.number - 2 && i <= categories.number + 2}"
                         th:classappend="${i == categories.number} ? 'active'">
-                        <a class="page-link" 
-                           th:href="@{/categorie-depenses/liste(page=${i}, size=${categories.size}, search=${search}, type=${type})}"
-                           th:text="${i + 1}">1</a>
+                        <a class="page-link"
+                            th:href="@{/categorie-depenses/liste(page=${i}, size=${categories.size}, search=${search}, type=${type})}"
+                            th:text="${i + 1}">1</a>
                     </li>
-                    
+
                     <li class="page-item" th:classappend="${categories.last} ? 'disabled'">
-                        <a class="page-link" 
-                           th:href="@{/categorie-depenses/liste(page=${categories.number + 1}, size=${categories.size}, search=${search}, type=${type})}">
+                        <a class="page-link"
+                            th:href="@{/categorie-depenses/liste(page=${categories.number + 1}, size=${categories.size}, search=${search}, type=${type})}">
                             Suivant
                         </a>
                     </li>
                 </ul>
-                
+
                 <div class="text-center text-muted">
                     <small>
-                        Page <span th:text="${categories.number + 1}">1</span> sur 
-                        <span th:text="${categories.totalPages}">1</span> 
+                        Page <span th:text="${categories.number + 1}">1</span> sur
+                        <span th:text="${categories.totalPages}">1</span>
                         (<span th:text="${categories.totalElements}">0</span> catégorie(s))
                     </small>
                 </div>
@@ -185,19 +187,19 @@
             color: #6c757d;
             margin-bottom: 0.25rem;
         }
-        
+
         .table th {
             font-size: 0.85rem;
             font-weight: 600;
             text-transform: uppercase;
             background-color: #f8f9fa;
         }
-        
+
         .table td {
             vertical-align: middle;
         }
     </style>
-    
+
     <script>
         function supprimerCategorie(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {

@@ -21,6 +21,7 @@ import com.berd.dev.models.CategorieDepenseDetail;
 import com.berd.dev.models.Depense;
 import com.berd.dev.models.DepenseDetail;
 import com.berd.dev.models.Unite;
+import com.berd.dev.models.User;
 import com.berd.dev.repositories.CategorieDepenseDetailRepository;
 import com.berd.dev.repositories.CategorieDepenseRepository;
 import com.berd.dev.repositories.DepenseDetailRepository;
@@ -39,9 +40,12 @@ public class DepenseService {
     private final CategorieDepenseRepository categorieDepenseRepository;
     private final CategorieDepenseDetailRepository categorieDepenseDetailRepository;
     private final UniteRepository uniteRepository;
+    private final SecurityService securityService;
 
     @Transactional
     public Depense save(DepenseForm form) {
+        User user = securityService.getAuthenticatedUser();
+
         // Validation
         if (form.getIdCategorieDepense() == null) {
             throw new IllegalArgumentException("La catégorie de dépense est obligatoire");
@@ -76,6 +80,7 @@ public class DepenseService {
         depense.setCreated(form.getCreated());
         depense.setDescription(form.getDescription());
         depense.setEstPrevue(form.getEstPrevue() != null ? form.getEstPrevue() : false);
+        depense.setUtilisateur(user);
 
         // Sauvegarder la dépense
         depense = depenseRepository.save(depense);
@@ -150,14 +155,21 @@ public class DepenseService {
         return depense;
     }
 
-    public Page<Depense> getFilteredDepenses(Integer categorieId, Boolean estPrevue,
-            LocalDate dateDebut, LocalDate dateFin,
-            String search, int page, int size) {
+    public Page<Depense> getFilteredDepenses(Integer categorieId, Boolean estPrevue, LocalDate dateDebut,
+            LocalDate dateFin, String search, int page, int size) {
+        User user = securityService.getAuthenticatedUser();
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "created"));
 
         Specification<Depense> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
+            // CONDITION DE SÉCURITÉ : On ne montre QUE les dépenses de cet utilisateur
+            if (user != null) {
+                predicates.add(cb.equal(root.get("utilisateur").get("idUtilisateur"), user.getIdUtilisateur()));
+            } else {
+                // Optionnel : Si pas d'utilisateur, on peut forcer un résultat vide
+                return cb.disjunction();
+            }
             if (categorieId != null) {
                 predicates.add(cb.equal(root.get("categorieDepense").get("idCategorieDepense"), categorieId));
             }

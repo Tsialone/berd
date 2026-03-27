@@ -36,6 +36,13 @@ public class Depense {
     private List<DepenseDetail> depenseDetails;
 
     @ManyToOne
+    @JoinColumn (name =  "id_utilisateur")
+    private User utilisateur;
+
+
+
+
+    @ManyToOne
     @JoinColumn (name =   "id_cd")
     private CategorieDepense categorieDepense;
     

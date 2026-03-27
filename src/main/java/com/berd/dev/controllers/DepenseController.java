@@ -19,7 +19,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.berd.dev.forms.DepenseDetailForm;
 import com.berd.dev.forms.DepenseForm;
 import com.berd.dev.models.Depense;
-import com.berd.dev.models.DepenseDetail;
 import com.berd.dev.services.CategorieDepenseDetailService;
 import com.berd.dev.services.CategorieDepenseService;
 import com.berd.dev.services.DepenseService;
@@ -62,7 +61,7 @@ public class DepenseController {
     public String form(Model model, jakarta.servlet.http.HttpSession session) {
 
         model.addAttribute("categoriesDetail", categorieDepenseDetailService.getAll());
-        model.addAttribute("categories", categorieDepenseService.getAll());
+        model.addAttribute("categories", categorieDepenseService.getAllDto());
         model.addAttribute("unites", uniteService.getAll());
 
         // Récupérer le formulaire de la session s'il existe

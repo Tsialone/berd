@@ -9,15 +9,21 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.berd.dev.utils.jackson.EmailMaskingSerializer;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
 import lombok.Data;
 
@@ -27,7 +33,7 @@ public class User implements UserDetails {
     @Id
     @Column(name = "id_utilisateur")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idUtilisateur;
+    private Integer idUtilisateur;
 
     @Column(unique = true, name = "nom", nullable = false)
     private String username;
@@ -53,6 +59,12 @@ public class User implements UserDetails {
 
     @Column(unique = true, name = "email", nullable = false)
     private String email;
+
+    @OneToMany(mappedBy = "utilisateur")
+    private List<Depense> depenses;
+
+    @OneToMany(mappedBy = "utilisateur" , fetch =  FetchType.LAZY)
+    private List<CategorieDepense> categorieDepenses;
 
     @Transient
     @JsonProperty("maskedEmail")

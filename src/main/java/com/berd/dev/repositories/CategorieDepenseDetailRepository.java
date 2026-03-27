@@ -14,10 +14,13 @@ public interface CategorieDepenseDetailRepository extends JpaRepository<Categori
     List<CategorieDepenseDetail> findByIdCategorieDepense(Integer idCd);
 
     @Query("SELECT cdd FROM categorie_depense_detail cdd WHERE " +
+            "cdd.idCategorieDepense IN :categorieIds AND " +
             "(:search = '' OR LOWER(cdd.libelle) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
-            "(:categorieId IS NULL OR cdd.idCategorieDepense = :categorieId)")
+            "(:categorieId IS NULL OR cdd.idCategorieDepense = :categorieId)"
+        )
     Page<CategorieDepenseDetail> findByFilters(
             @Param("search") String search,
             @Param("categorieId") Integer categorieId,
+            @Param ("categorieIds") Integer [] categorieIds,
             Pageable pageable);
 }

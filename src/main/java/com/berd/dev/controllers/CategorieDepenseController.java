@@ -31,14 +31,21 @@ public class CategorieDepenseController {
     @GetMapping("/liste")
     public String liste(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false, name = "all") String allParam,
             @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model) {
 
-        Page<CategorieDepense> categoriesPage = categorieDepenseService.getFilteredCategories(search, type, page, size);
+        boolean all = false;
+        if (allParam != null && !allParam.isEmpty() && allParam.equals("on"))
+            all = true;
+        Page<CategorieDepense> categoriesPage = categorieDepenseService.getFilteredCategories(search, type, page, size,
+                all);
+        System.out.println("allParam: " + all);
 
         model.addAttribute("categories", categoriesPage);
+        model.addAttribute("all", allParam);
         model.addAttribute("search", search);
         model.addAttribute("type", type);
         model.addAttribute("content", "pages/categorie-depenses/categorie-depense-liste");
@@ -50,8 +57,6 @@ public class CategorieDepenseController {
         model.addAttribute("categorieDepense", new CategorieDepense());
         model.addAttribute("isEdit", false);
         model.addAttribute("content", "pages/categorie-depenses/categorie-depense-saisie");
-
-        
 
         return "admin-layout";
     }

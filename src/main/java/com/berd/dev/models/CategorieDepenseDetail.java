@@ -2,6 +2,7 @@ package com.berd.dev.models;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Comment;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,6 +28,7 @@ public class CategorieDepenseDetail {
     @Column(name = "id_cd")
     private Integer idCategorieDepense;
 
-
+    @Column(name = "id_utilisateur")
+    private Integer idUtilisateur;
 
 }
