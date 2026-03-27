@@ -61,7 +61,7 @@
         <div class="card-body">
             <div class="d-flex flex-wrap gap-3 mb-3" id="courbeLegend"></div>
             <div class="border rounded p-2 chart-scroll-wrap">
-                <svg id="categorieCourbeSvg" class="chart-svg" viewBox="0 0 920 340" width="100%" height="340" role="img" aria-label="Courbe des dépenses par catégorie"></svg>
+                <svg id="categorieCourbeSvg" class="chart-svg" viewBox="0 0 920 360" width="100%" height="360" role="img" aria-label="Courbe des dépenses par catégorie"></svg>
             </div>
         </div>
     </div>
@@ -102,6 +102,20 @@
             min-width: 560px;
         }
 
+        .courbe-legend-item {
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+
+        .courbe-legend-item:hover {
+            opacity: 0.75;
+        }
+
+        .courbe-legend-item.hidden-serie {
+            opacity: 0.35;
+        }
+
         @media (max-width: 768px) {
             .stats-header-tools {
                 align-items: stretch !important;
@@ -128,7 +142,6 @@
     </style>
 
     <script>
-        
 
         function formatMontant(value) {
             const arrondi = Number(value || 0).toFixed(2);
@@ -172,19 +185,12 @@
 
             try {
                 const response = await fetch(`/api/depenses/stats/recap?periode=${encodeURIComponent(periodeKey)}`);
-                if (!response.ok) {
-                    throw new Error('Erreur API recap');
-                }
+                if (!response.ok) throw new Error('Erreur API recap');
 
                 const payload = await response.json();
                 const data = payload.depenseMoyenneParPeriode || [];
 
-                renderStatsFromData(
-                    data,
-                    payload.moyenneGlobale,
-                    payload.maxLabel,
-                    payload.maxValue
-                );
+                renderStatsFromData(data, payload.moyenneGlobale, payload.maxLabel, payload.maxValue);
             } catch (e) {
                 tbody.innerHTML = `<tr><td colspan="2" class="text-center text-danger">Erreur de chargement recap</td></tr>`;
                 renderStatsFromData([], 0, '-', 0);
@@ -203,19 +209,21 @@
 
             const colors = ['#435ebe', '#198754', '#dc3545', '#fd7e14', '#6f42c1'];
             const width = 920;
-            const height = 340;
+            const height = 360;
             const padLeft = 60;
             const padRight = 20;
             const padTop = 20;
-            const padBottom = 50;
+            const padBottom = 70; // extra space for rotated labels
             const chartW = width - padLeft - padRight;
             const chartH = height - padTop - padBottom;
             const maxVal = Math.max(...cfg.series.flatMap(s => s.values), 1);
             const stepsY = 5;
+            const hiddenSeries = new Set();
 
             svg.innerHTML = '';
             legend.innerHTML = '';
 
+            // ── Grid + Y-axis labels ─────────────────────────────────────────
             for (let i = 0; i <= stepsY; i++) {
                 const y = padTop + (chartH / stepsY) * i;
                 const value = maxVal - (maxVal / stepsY) * i;
@@ -239,6 +247,7 @@
                 svg.appendChild(labelY);
             }
 
+            // ── Axes ─────────────────────────────────────────────────────────
             const axisX = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             axisX.setAttribute('x1', padLeft);
             axisX.setAttribute('x2', padLeft + chartW);
@@ -255,18 +264,53 @@
             axisY.setAttribute('stroke', '#adb5bd');
             svg.appendChild(axisY);
 
+            // ── X-axis labels: skip overlapping ones + rotate 35° ────────────
+            const minLabelGap = 38; // min px between label anchor points
+            const labelStep = Math.max(1, Math.ceil((cfg.labels.length - 1) / Math.floor(chartW / minLabelGap)));
+
             cfg.labels.forEach((label, idx) => {
+                // always show first, last, and every labelStep-th
+                if (idx !== 0 && idx !== cfg.labels.length - 1 && idx % labelStep !== 0) return;
+
                 const x = padLeft + (chartW * idx) / Math.max(cfg.labels.length - 1, 1);
+                const anchorY = padTop + chartH + 14;
+
                 const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                 text.setAttribute('x', String(x));
-                text.setAttribute('y', String(padTop + chartH + 20));
-                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('y', String(anchorY));
+                text.setAttribute('text-anchor', 'end');
                 text.setAttribute('font-size', '11');
                 text.setAttribute('fill', '#6c757d');
+                text.setAttribute('transform', `rotate(-35,${x},${anchorY})`);
                 text.textContent = label;
                 svg.appendChild(text);
             });
 
+<<<<<<< Updated upstream
+=======
+            // ── Catmull-Rom → cubic Bézier helper ───────────────────────────
+            function catmullRom2bezier(pts) {
+                if (!pts || pts.length === 0) return '';
+                if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+                let d = `M ${pts[0].x} ${pts[0].y}`;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const p0 = i > 0 ? pts[i - 1] : pts[i];
+                    const p1 = pts[i];
+                    const p2 = pts[i + 1];
+                    const p3 = i + 2 < pts.length ? pts[i + 2] : p2;
+                    const cp1x = p1.x + (p2.x - p0.x) / 6;
+                    const cp1y = p1.y + (p2.y - p0.y) / 6;
+                    const cp2x = p2.x - (p3.x - p1.x) / 6;
+                    const cp2y = p2.y - (p3.y - p1.y) / 6;
+                    d += ` C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${p2.x} ${p2.y}`;
+                }
+                return d;
+            }
+
+            // ── Series: path + dots in a <g> for easy show/hide ─────────────
+            const allPoints = []; // needed by tooltip
+
+>>>>>>> Stashed changes
             cfg.series.forEach((serie, sIdx) => {
                 const color = colors[sIdx % colors.length];
                 const points = serie.values.map((value, idx) => {
@@ -274,8 +318,13 @@
                     const y = padTop + chartH - (value / maxVal) * chartH;
                     return { x, y, value };
                 });
+                allPoints.push({ name: serie.name, color, points });
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('data-serie', String(sIdx));
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+<<<<<<< Updated upstream
                 path.setAttribute('d', points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' '));
                 path.setAttribute('fill', 'none');
                 path.setAttribute('stroke', color);
@@ -283,21 +332,162 @@
                 svg.appendChild(path);
 
                 points.forEach(point => {
+=======
+                path.setAttribute('d', catmullRom2bezier(points));
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', color);
+                path.setAttribute('stroke-width', '2.5');
+                path.setAttribute('stroke-linejoin', 'round');
+                path.setAttribute('stroke-linecap', 'round');
+                g.appendChild(path);
+
+                points.forEach(pt => {
+>>>>>>> Stashed changes
                     const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    dot.setAttribute('cx', String(point.x));
-                    dot.setAttribute('cy', String(point.y));
+                    dot.setAttribute('cx', String(pt.x));
+                    dot.setAttribute('cy', String(pt.y));
                     dot.setAttribute('r', '3');
                     dot.setAttribute('fill', color);
-                    svg.appendChild(dot);
+                    g.appendChild(dot);
                 });
 
+                svg.appendChild(g);
+
+                // ── Legend item (clickable toggle) ───────────────────────────
                 const legendItem = document.createElement('div');
-                legendItem.className = 'd-flex align-items-center gap-2';
+                legendItem.className = 'courbe-legend-item d-flex align-items-center gap-2';
+                legendItem.dataset.serieIdx = String(sIdx);
                 legendItem.innerHTML = `
-                    <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};"></span>
+                    <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};flex-shrink:0;"></span>
                     <small class="text-muted">${serie.name}</small>
                 `;
+                legendItem.addEventListener('click', () => {
+                    const serieG = svg.querySelector(`[data-serie="${sIdx}"]`);
+                    if (hiddenSeries.has(sIdx)) {
+                        hiddenSeries.delete(sIdx);
+                        if (serieG) serieG.style.display = '';
+                        legendItem.classList.remove('hidden-serie');
+                    } else {
+                        hiddenSeries.add(sIdx);
+                        if (serieG) serieG.style.display = 'none';
+                        legendItem.classList.add('hidden-serie');
+                    }
+                });
                 legend.appendChild(legendItem);
+            });
+
+            // ── Vertical crosshair line ──────────────────────────────────────
+            const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            vLine.setAttribute('stroke', '#adb5bd');
+            vLine.setAttribute('stroke-width', '1');
+            vLine.setAttribute('stroke-dasharray', '4,3');
+            vLine.style.display = 'none';
+            vLine.style.pointerEvents = 'none';
+            svg.appendChild(vLine);
+
+            // ── Tooltip group ────────────────────────────────────────────────
+            const tooltipG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            tooltipG.style.display = 'none';
+            tooltipG.style.pointerEvents = 'none';
+
+            const tooltipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            tooltipBg.setAttribute('rx', '7');
+            tooltipBg.setAttribute('ry', '7');
+            tooltipBg.setAttribute('fill', 'rgba(22,27,40,0.88)');
+            tooltipG.appendChild(tooltipBg);
+
+            const tooltipContent = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            tooltipG.appendChild(tooltipContent);
+
+            svg.appendChild(tooltipG);
+
+            // ── Invisible overlay captures mouse events ──────────────────────
+            const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            overlay.setAttribute('x', String(padLeft));
+            overlay.setAttribute('y', String(padTop));
+            overlay.setAttribute('width', String(chartW));
+            overlay.setAttribute('height', String(chartH));
+            overlay.setAttribute('fill', 'transparent');
+            overlay.style.cursor = 'crosshair';
+            svg.appendChild(overlay);
+
+            function svgX(evt) {
+                const bbox = svg.getBoundingClientRect();
+                return (evt.clientX - bbox.left) * (width / bbox.width);
+            }
+
+            overlay.addEventListener('mousemove', (evt) => {
+                const mx = svgX(evt);
+                const n = cfg.labels.length;
+                if (n === 0) return;
+
+                // find nearest label index
+                let nearestIdx = 0;
+                let minDist = Infinity;
+                for (let i = 0; i < n; i++) {
+                    const px = padLeft + (chartW * i) / Math.max(n - 1, 1);
+                    const d = Math.abs(px - mx);
+                    if (d < minDist) { minDist = d; nearestIdx = i; }
+                }
+
+                const nx = padLeft + (chartW * nearestIdx) / Math.max(n - 1, 1);
+
+                // crosshair
+                vLine.setAttribute('x1', String(nx));
+                vLine.setAttribute('x2', String(nx));
+                vLine.setAttribute('y1', String(padTop));
+                vLine.setAttribute('y2', String(padTop + chartH));
+                vLine.style.display = '';
+
+                // build tooltip lines
+                const lineH = 18;
+                const pad = 10;
+                const rows = [];
+                rows.push({ text: cfg.labels[nearestIdx], color: '#ffffff', bold: true });
+
+                cfg.series.forEach((serie, sIdx) => {
+                    if (hiddenSeries.has(sIdx)) return;
+                    const val = serie.values[nearestIdx] ?? 0;
+                    rows.push({
+                        text: `${serie.name}: ${formatMontant(val)}`,
+                        color: colors[sIdx % colors.length],
+                        bold: false
+                    });
+                });
+
+                // estimate tooltip width from longest text
+                const maxChars = Math.max(...rows.map(r => r.text.length));
+                const tipW = maxChars * 6.8 + pad * 2;
+                const tipH = rows.length * lineH + pad * 2;
+
+                // position: right of line, flip left near edge
+                let tx = nx + 14;
+                if (tx + tipW > width - padRight) tx = nx - tipW - 14;
+                const ty = padTop + 10;
+
+                tooltipBg.setAttribute('x', String(tx));
+                tooltipBg.setAttribute('y', String(ty));
+                tooltipBg.setAttribute('width', String(tipW));
+                tooltipBg.setAttribute('height', String(tipH));
+
+                tooltipContent.innerHTML = '';
+                rows.forEach((row, i) => {
+                    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    t.setAttribute('x', String(tx + pad));
+                    t.setAttribute('y', String(ty + pad + (i + 1) * lineH - 4));
+                    t.setAttribute('font-size', row.bold ? '12' : '11');
+                    t.setAttribute('fill', row.color);
+                    if (row.bold) t.setAttribute('font-weight', 'bold');
+                    t.textContent = row.text;
+                    tooltipContent.appendChild(t);
+                });
+
+                tooltipG.style.display = '';
+            });
+
+            overlay.addEventListener('mouseleave', () => {
+                tooltipG.style.display = 'none';
+                vLine.style.display = 'none';
             });
         }
 
@@ -310,9 +500,7 @@
 
             try {
                 const response = await fetch(`/api/depenses/stats/courbe-categorie?periode=${encodeURIComponent(periodeKey)}`);
-                if (!response.ok) {
-                    throw new Error('Erreur API courbe categorie');
-                }
+                if (!response.ok) throw new Error('Erreur API courbe categorie');
 
                 const payload = await response.json();
                 renderCourbeCategorieFromConfig({
@@ -404,9 +592,7 @@
         async function renderNbrDepenses(periodeKey) {
             try {
                 const response = await fetch(`/api/depenses/stats/barres?periode=${encodeURIComponent(periodeKey)}`);
-                if (!response.ok) {
-                    throw new Error('Erreur API barres');
-                }
+                if (!response.ok) throw new Error('Erreur API barres');
 
                 const payload = await response.json();
                 renderNbrDepensesFromData(payload);
