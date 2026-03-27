@@ -71,7 +71,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // return new BCryptPasswordEncoder(); // Hachage sécurisé des mots de passe
-          return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder(); // Hachage sécurisé des mots de passe
+        //   return NoOpPasswordEncoder.getInstance();
     }
 }
