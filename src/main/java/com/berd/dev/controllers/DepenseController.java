@@ -152,7 +152,7 @@ public class DepenseController {
         }
 
         model.addAttribute("categoriesDetail", categorieDepenseDetailService.getAll());
-        model.addAttribute("categories", categorieDepenseService.getAll());
+        model.addAttribute("categories", categorieDepenseService.getAllDto());
         model.addAttribute("unites", uniteService.getAll());
         model.addAttribute("depenseForm", depenseForm);
         model.addAttribute("content", "pages/depenses/depense-saisie");
