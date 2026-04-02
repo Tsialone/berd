@@ -1,6 +1,9 @@
 package com.berd.dev.models;
 
+import java.beans.Transient;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,6 +47,23 @@ public class Caisse {
     @JoinColumn(name = "id_utilisateur", nullable = false)
     private User utilisateur;
 
+    @OneToMany (fetch =  FetchType.LAZY)
+    @JoinColumn (name =  "id_caisse")
+    private List<CaisseMvt> caisseMvts  = new ArrayList<>();
 
+    @Transient
+    public void refreshSolde (){
+        Double resp= 0d ;
+        double totalCredit= 0d;
+        double totalDebit= 0d;
+
+        for (CaisseMvt caisseMvt : caisseMvts) {
+                totalCredit +=caisseMvt.getCredit();
+                totalDebit +=caisseMvt.getDebit();
+
+        }
+        resp =  totalCredit - totalDebit;
+        setSolde(resp);
+    }
 
 }
