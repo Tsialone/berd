@@ -26,3 +26,12 @@ pg_restore \
   -d postgres \
   --clean --if-exists \
   backup_2.dump
+
+
+  pg_dump \
+  -h aws-0-us-west-2.pooler.supabase.com \
+  -p 6543 \
+  -U postgres.rutjlnfhhphrcybcqry \
+  -d postgres \
+  -Fc \
+  -f 2026-04-01.dump
