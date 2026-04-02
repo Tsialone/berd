@@ -1,0 +1,165 @@
+<section class="section" th:fragment="page">
+    <form class="form" method="post" th:action="@{/caisses-mvts/save}" id="caisseMvtForm">
+        <div class="row match-height">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Saisie d'un mouvement de caisse</h4>
+                        
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="montant" class="form-label">Montant</label>
+                                <input type="number" step="0.01" id="montant" name="montant" th:value="${caisseMvtForm != null && caisseMvtForm.montant !=  null ? caisseMvtForm.montant : 0}" class="form-control" placeholder="Montant" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="type" class="form-label">Type</label>
+                                <select id="type" name="type" class="form-control">
+                                    <option th:selected="${caisseMvtForm?.type == 'DEBIT'}" value="DEBIT">Débit</option>
+                                    <option  th:selected="${caisseMvtForm?.type == 'CREDIT'}" value="CREDIT">Crédit</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="caisseInput" class="form-label">Caisse</label>
+                                <input type="text" id="caisseInput" class="form-control" placeholder="Rechercher une caisse..." autocomplete="off" data-target="idCaisse" />
+                                <input type="hidden" id="idCaisse" name="idCaisse" th:value="${caisseMvtForm.idCaisse}" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="depenseInput" class="form-label">Dépense (facultatif)</label>
+                                <input type="text" id="depenseInput" class="form-control" placeholder="Rechercher une dépense..." autocomplete="off" data-target="idDepense" />
+                                <input type="hidden" id="idDepense" name="idDepense" th:value="${caisseMvtForm.idDepense}" />
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <a th:href="@{/caisses/liste}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <style>
+        .autocomplete-wrapper { position: relative; }
+        .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ced4da; border-top: none; border-radius: 0 0 0.25rem 0.25rem; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .autocomplete-list.show { display: block; }
+        .autocomplete-item { padding: 0.5rem 0.75rem; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+        .autocomplete-item:hover, .autocomplete-item.active { background: #435ebe; color: white; }
+        .autocomplete-item:last-child { border-bottom: none; }
+    </style>
+
+    <script th:inline="javascript">
+        const caissesData = /*[[${caisses}]]*/ [];
+        const depensesData = /*[[${depenses}]]*/ [];
+
+        function setupAutocomplete(input, dataSource, valueField, labelField, searchFields, formatLabel) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'autocomplete-wrapper';
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+
+            const list = document.createElement('div');
+            list.className = 'autocomplete-list';
+            wrapper.appendChild(list);
+
+            const targetId = input.getAttribute('data-target');
+            const hiddenInput = document.getElementById(targetId) || document.querySelector('.' + targetId);
+
+            // searchFields can be a string (single field) or an array of field paths (supports dotted paths)
+            if (!searchFields) searchFields = [labelField];
+            else if (typeof searchFields === 'string') searchFields = [searchFields];
+
+            let selectedIndex = -1;
+            let filteredData = [];
+
+            function getValueByPath(obj, path) {
+                try {
+                    return path.split('.').reduce((o, p) => (o ? o[p] : undefined), obj);
+                } catch (e) { return undefined; }
+            }
+
+            function showResults(items) {
+                filteredData = items;
+                if (filteredData.length === 0) { list.classList.remove('show'); return; }
+
+                list.innerHTML = filteredData.map((item, index) => {
+                    const displayLabel = formatLabel ? formatLabel(item) : item[labelField];
+                    return `<div class="autocomplete-item" data-index="${index}" data-value="${item[valueField]}" data-label="${displayLabel}">${displayLabel}</div>`;
+                }).join('');
+
+                list.classList.add('show');
+
+                list.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const label = this.getAttribute('data-label');
+                        const value = this.getAttribute('data-value');
+                        input.value = label;
+                        if (hiddenInput) hiddenInput.value = value;
+                        list.classList.remove('show');
+                    });
+                });
+            }
+
+            input.addEventListener('focus', function() { if (this.value.trim() === '') showResults(dataSource); });
+
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                selectedIndex = -1;
+                if (!searchTerm) { showResults(dataSource); if (hiddenInput) hiddenInput.value = ''; return; }
+                const filtered = dataSource.filter(item => {
+                    return searchFields.some(sf => {
+                        const v = getValueByPath(item, sf);
+                        return v != null && String(v).toLowerCase().includes(searchTerm);
+                    });
+                });
+                if (filtered.length === 0) { list.classList.remove('show'); if (hiddenInput) hiddenInput.value = ''; return; }
+                showResults(filtered);
+            });
+
+            input.addEventListener('keydown', function(e) {
+                const items = list.querySelectorAll('.autocomplete-item');
+                if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, items.length - 1); updateActive(items); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, 0); updateActive(items); }
+                else if (e.key === 'Enter' && selectedIndex >= 0) { e.preventDefault(); items[selectedIndex].click(); }
+                else if (e.key === 'Escape') { list.classList.remove('show'); }
+            });
+
+            function updateActive(items) {
+                items.forEach((item, index) => item.classList.toggle('active', index === selectedIndex));
+                if (items[selectedIndex]) items[selectedIndex].scrollIntoView({ block: 'nearest' });
+            }
+
+            document.addEventListener('click', function(e) { if (!wrapper.contains(e.target)) list.classList.remove('show'); });
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const caisseInput = document.getElementById('caisseInput');
+            const depenseInput = document.getElementById('depenseInput');
+            const hiddenCaisse = document.getElementById('idCaisse');
+            const hiddenDepense = document.getElementById('idDepense');
+
+            // Search caisses by name, description or category libelle (supports nested property 'caisseCategorie.libelle')
+            // Display format: nom | categorie
+            if (caisseInput) setupAutocomplete(caisseInput, caissesData, 'idCaisse', 'nom', ['categorie', 'description', 'caisseCategorie.libelle'], (item) => `${item.nom} | ${item.categorie}`);
+            // Search depenses by reference or description
+            if (depenseInput) setupAutocomplete(depenseInput, depensesData, 'idDepense', 'description', ['reference', 'description']);
+
+            if (hiddenCaisse && hiddenCaisse.value) {
+                const c = caissesData.find(x => x.idCaisse == hiddenCaisse.value || x.id == hiddenCaisse.value);
+                if (c) caisseInput.value = `${c.nom || c.libelle || c.categorie || ''} | ${c.categorie || ''}`;
+            }
+            if (hiddenDepense && hiddenDepense.value) {
+                const d = depensesData.find(x => x.idDepense == hiddenDepense.value || x.id == hiddenDepense.value);
+                if (d) depenseInput.value = d.description ||  '';
+            }
+        });
+    </script>
+
+</section>
