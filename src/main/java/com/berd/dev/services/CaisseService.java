@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.berd.dev.dtos.CaisseDto;
 import com.berd.dev.forms.CaisseForm;
+import com.berd.dev.mappers.CaisseMapper;
 import com.berd.dev.models.Caisse;
 import com.berd.dev.models.CaisseCategorie;
 import com.berd.dev.models.User;
@@ -20,6 +22,14 @@ public class CaisseService {
     private final CaisseCategoreRepository caisseCategoreRepository;
 
     private SecurityService securityService;
+
+
+    public List<CaisseDto> getAllDto (){
+        
+        return CaisseMapper.tDtos(caisseRepository.findAll());
+    }
+
+
     public Caisse saveByForm(CaisseForm form) {
         User user = securityService.getAuthenticatedUser();
         if (form == null) {

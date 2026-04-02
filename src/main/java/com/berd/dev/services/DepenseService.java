@@ -11,11 +11,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.berd.dev.dtos.DepenseDto;
 import com.berd.dev.forms.DepenseDetailForm;
 import com.berd.dev.forms.DepenseForm;
+import com.berd.dev.mappers.DepenseMapper;
 import com.berd.dev.models.CategorieDepense;
 import com.berd.dev.models.CategorieDepenseDetail;
 import com.berd.dev.models.Depense;
@@ -41,6 +44,26 @@ public class DepenseService {
     private final CategorieDepenseDetailRepository categorieDepenseDetailRepository;
     private final UniteRepository uniteRepository;
     private final SecurityService securityService;
+
+    @Async
+    public void refreshMontantTotalByIdDepense(Integer idDepense) {
+        Depense depense = depenseRepository.findAllWithDepenseDetailsByIdDepense(idDepense);
+        if (depense != null) {
+            depense.refreshMontantTotal();
+            depenseRepository.save(depense);
+        }
+    }
+
+    @Async
+    public void refreshMontantTotalDepenses() {
+        for (Depense depense : depenseRepository.findAllWithDepenseDetails()) {
+            refreshMontantTotalByIdDepense(depense.getIdDepense());
+        }
+    }
+
+    public List<DepenseDto> getAllDto() {
+        return DepenseMapper.toDtos(depenseRepository.findAll());
+    }
 
     @Transactional
     public Depense save(DepenseForm form) {
@@ -151,7 +174,7 @@ public class DepenseService {
                 depense.setDepenseDetails(details);
             }
         }
-
+        refreshMontantTotalByIdDepense(depense.getIdDepense());
         return depense;
     }
 
