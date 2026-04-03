@@ -13,4 +13,7 @@ public interface CaisseMvtRepository extends JpaRepository<CaisseMvt, Integer> {
     @Query("SELECT cm FROM caisse_mvt cm WHERE cm.caisse.utilisateur.idUtilisateur = :id_utilisateur")
     List<CaisseMvt> findByIdUtilisateur(@Param("id_utilisateur") Integer id);
 
+
+    List<CaisseMvt>    findByDepenseIdDepense(Integer idDepense);
+
 }
