@@ -1,0 +1,205 @@
+<section class="section" th:fragment="page">
+  <div class="card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="card-title">Liste des caisses</h4>
+        <a th:href="@{/caisses/saisie}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Nouvelle caisse
+        </a>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Filtres avec formulaire Spring -->
+      <form th:action="@{/caisses/liste}" method="get" class="mb-4">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 mb-2">
+            <label class="form-label-sm">Catégorie</label>
+            <select name="categorieId" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Toutes les catégories</option>
+              <option th:each="cat : ${categories}" th:value="${cat.idCaisseCategorie}" th:text="${cat.libelle}" th:selected="${param.categorieId != null and #strings.toString(cat.idCaisseCategorie) == param.categorieId[0]}">
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Date début</label>
+            <input type="date" name="dateDebut" class="form-control form-control-sm" th:value="${param.dateDebut}" onchange="this.form.submit()">
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Date fin</label>
+            <input type="date" name="dateFin" class="form-control form-control-sm" th:value="${param.dateFin}" onchange="this.form.submit()">
+          </div>
+          <div class="col-md-3 mb-2">
+            <label class="form-label-sm">Recherche</label>
+            <div class="input-group input-group-sm">
+              <input type="text" name="search" class="form-control" th:value="${param.search}" placeholder="Nom ou description...">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-2 mb-2">
+            <label class="form-label-sm">&nbsp;</label>
+            <a th:href="@{/caisses/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+              <i class="bi bi-arrow-clockwise"></i>
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <!-- Vue desktop: Tableau -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date création</th>
+              <th>Catégorie</th>
+              <th>Nom</th>
+              <th>Description</th>
+              <th class="text-end">Solde</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="caisse, stat : ${caisses}" th:data-id="${caisse.idCaisse}">
+              <td th:text="${stat.count}">1</td>
+              <td th:text="${#temporals.format(caisse.created, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30</td>
+              <td>
+                <span class="badge bg-info" th:text="${caisse.categorie}">Catégorie</span>
+              </td>
+              <td class="fw-bold" th:text="${caisse.nom}">Nom</td>
+              <td th:text="${caisse.description ?: '-'}">Description</td>
+              <td class="text-end fw-bold">
+                <span th:classappend="${caisse.solde >= 0} ? 'text-success' : 'text-danger'" 
+                      data-montant th:attr="data-montant=${caisse.solde ?: 0}"
+                      th:text="${#numbers.formatDecimal(caisse.solde ?: 0, 1, 2)}">0.00</span> Ar
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a th:href="@{/caisses/fiche/{id}(id=${caisse.idCaisse})}"
+                    class="btn btn-sm btn-primary" title="Voir détails">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a th:href="@{/caisses/delete/{id}(id=${caisse.idCaisse})}"
+                    class="btn btn-sm btn-danger" title="Supprimer"
+                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette caisse ?')">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold bg-light">
+              <td colspan="5" class="text-end">Solde total:</td>
+              <td class="text-end text-primary">
+                <span data-montant th:attr="data-montant=${soldeTotal ?: 0}"
+                  th:text="${#numbers.formatDecimal(soldeTotal ?: 0, 1, 2)}">0.00</span> Ar
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Vue mobile: Cartes -->
+      <div class="d-md-none">
+        <div class="card mb-3" th:each="caisse : ${caisses}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-1">
+                  <a th:href="@{/caisses/fiche/{id}(id=${caisse.idCaisse})}"
+                    class="text-decoration-none" th:text="${caisse.nom}">
+                    Nom
+                  </a>
+                </h6>
+                <small class="text-muted"
+                  th:text="${#temporals.format(caisse.created, 'dd/MM/yyyy HH:mm')}">
+                  06/03/2026 14:30
+                </small>
+              </div>
+              <span class="badge bg-info" th:text="${caisse.categorie}">Catégorie</span>
+            </div>
+            <p class="mb-2" th:text="${caisse.description ?: 'Aucune description'}">Description</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <div></div>
+              <div class="text-end">
+                <div class="fw-bold" th:classappend="${caisse.solde >= 0} ? 'text-success' : 'text-danger'">
+                  <span data-montant th:attr="data-montant=${caisse.solde ?: 0}"
+                    th:text="${#numbers.formatDecimal(caisse.solde ?: 0, 1, 2)}">0.00</span>
+                  Ar
+                </div>
+                <div class="btn-group btn-group-sm mt-1">
+                  <a th:href="@{/caisses/fiche/{id}(id=${caisse.idCaisse})}"
+                    class="btn btn-sm btn-primary">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <button type="button" class="btn btn-sm btn-danger" title="Supprimer"
+                    th:onclick="'supprimerCaisse(' + ${caisse.idCaisse} + ')'">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message si aucune caisse -->
+      <div th:if="${caisses.isEmpty()}" class="text-center py-5">
+        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-2">Aucune caisse trouvée</p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .form-label-sm {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #6c757d;
+      margin-bottom: 0.25rem;
+    }
+
+    .table th {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background-color: #f8f9fa;
+    }
+
+    .table td {
+      vertical-align: middle;
+    }
+  </style>
+
+  <script th:inline="javascript">
+
+    function supprimerCaisse(id) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cette caisse ?')) {
+        window.location.href = '/caisses/delete/' + id;
+      }
+    }
+
+    // Fonction pour formater les montants
+    function formatMontant(montant) {
+      const arrondi = parseFloat(montant).toFixed(2);
+      const [entier, decimal] = arrondi.split('.');
+
+      // Ajouter les séparateurs de milliers
+      const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+      return `${entierFormate},${decimal}`;
+    }
+
+    // Formater tous les montants au chargement
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('[data-montant]').forEach(el => {
+        const montant = parseFloat(el.getAttribute('data-montant'));
+        el.textContent = formatMontant(montant);
+      });
+    });
+  </script>
+</section>
