@@ -14,6 +14,7 @@ public class CaisseMapper {
 
         resp.setNom(caisse.getNom());
         resp.setIdCaisse(caisse.getIdCaisse());
+        resp.setIdCaisseCategorie(caisse.getCaisseCategorie().getIdCaisseCategorie());
         resp.setCategorie(caisse.getCaisseCategorie().getLibelle());
         resp.setCreated(caisse.getCreated());
         resp.setSolde(caisse.getSolde());

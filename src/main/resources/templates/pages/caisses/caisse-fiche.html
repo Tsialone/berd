@@ -1,0 +1,228 @@
+<section class="section" th:fragment="page">
+    <div class="row">
+        <div class="col-12">
+            <!-- Carte principale -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                        <h4 class="card-title mb-0">
+                            <i class="bi bi-safe2-fill me-2"></i>Fiche Caisse
+                        </h4>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a th:href="@{/caisses/edit/{id}(id=${caisse.idCaisse})}" 
+                               class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil-square me-1"></i> Modifier
+                            </a>
+                            <button type="button" 
+                                    class="btn btn-danger btn-sm"
+                                    th:onclick="'supprimerCaisse(' + ${caisse.idCaisse} + ')'">
+                                <i class="bi bi-trash me-1"></i> Supprimer
+                            </button>
+                            <a th:href="@{/caisses/liste}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Nom</label>
+                            <div class="fw-bold fs-5" th:text="${caisse.nom}">Nom</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Catégorie</label>
+                            <div>
+                                <span class="badge bg-light-info fs-6" th:text="${caisse.caisseCategorie.libelle}">Catégorie</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Date création</label>
+                            <div th:text="${#temporals.format(caisse.created, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Solde</label>
+                            <div class="fw-bold fs-5" th:classappend="${caisse.solde >= 0} ? 'text-success' : 'text-danger'">
+                                <span th:text="${#numbers.formatDecimal(caisse.solde ?: 0, 1, 2)}">0.00</span> Ar
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label text-muted small">Description</label>
+                            <div th:text="${caisse.description ?: 'Aucune description'}">Description</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des mouvements -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-arrow-left-right me-2"></i>
+                            Mouvements 
+                            <span class="badge bg-primary" th:text="${mouvements.size()}">0</span>
+                        </h5>
+                        <a th:href="@{/caisses-mvts/saisie(idCaisse=${caisse.idCaisse})}" 
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Ajouter
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div th:if="${mouvements.isEmpty()}" class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Aucun mouvement pour cette caisse</p>
+                    </div>
+
+                    <!-- Vue desktop: Tableau -->
+                    <div th:unless="${mouvements.isEmpty()}" class="table-responsive d-none d-md-block">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Montant</th>
+                                    <th>Dépense</th>
+                                    <th style="width: 100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="mvt, stat : ${mouvements}">
+                                    <td th:text="${stat.index + 1}">1</td>
+                                    <td th:text="${#temporals.format(mvt.created, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30</td>
+                                    <td>
+                                        <span th:if="${mvt.debit > 0}" class="badge bg-danger">
+                                            <i class="bi bi-arrow-down me-1"></i>Débit
+                                        </span>
+                                        <span th:if="${mvt.credit > 0}" class="badge bg-success">
+                                            <i class="bi bi-arrow-up me-1"></i>Crédit
+                                        </span>
+                                    </td>
+                                    <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(mvt.getMontant() ?: 0, 1, 2)}">0.00</td>
+                                    <td>
+                                        <a th:if="${mvt.depense != null}" 
+                                           th:href="@{/depenses/fiche/{id}(id=${mvt.depense.idDepense})}"
+                                           class="text-decoration-none" 
+                                           th:text="${mvt.depense.description ?: 'Voir détails'}">
+                                            Dépense
+                                        </a>
+                                        <span th:unless="${mvt.depense != null}" class="text-muted">-</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a th:href="@{/caisse-mvt/edit/{id}(id=${mvt.idCm})}"
+                                               class="btn btn-sm btn-warning"
+                                               title="Modifier">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-danger"
+                                                    title="Supprimer"
+                                                    th:onclick="'supprimerMouvement(' + ${mvt.idCm} + ')'">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vue mobile: Cartes -->
+                    <div th:unless="${mouvements.isEmpty()}" class="d-md-none">
+                        <div class="card mb-2" th:each="mvt : ${mouvements}">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <small class="text-muted d-block" th:text="${#temporals.format(mvt.created, 'dd/MM/yyyy HH:mm')}">
+                                            06/03/2026 14:30
+                                        </small>
+                                    </div>
+                                    <span th:if="${mvt.debit > 0}" class="badge bg-danger">Débit</span>
+                                    <span th:if="${mvt.credit > 0}" class="badge bg-success">Crédit</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <div class="fw-bold" th:text="${#numbers.formatDecimal(mvt.getMontant() ?: 0, 1, 2)}">0.00</div>
+                                        <small class="text-muted">Montant</small>
+                                    </div>
+                                    <small th:if="${mvt.depense != null}" class="text-muted">
+                                        Lié à dépense
+                                    </small>
+                                </div>
+                                <div class="btn-group btn-group-sm w-100">
+                                    <a th:href="@{/caisse-mvt/edit/{id}(id=${mvt.idCm})}"
+                                       class="btn btn-sm btn-warning flex-grow-1">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-danger flex-grow-1"
+                                            th:onclick="'supprimerMouvement(' + ${mvt.idCm} + ')'">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: #f8f9fa;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        function supprimerCaisse(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette caisse ?\n\nAttention : Vous ne pouvez supprimer une caisse que si elle n\'a aucun mouvement.')) {
+                window.location.href = '/caisses/delete/' + id;
+            }
+        }
+
+        function supprimerMouvement(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce mouvement ?')) {
+                window.location.href = '/caisse-mvt/delete/' + id;
+            }
+        }
+
+        // Fonction pour formater les montants
+        function formatMontant(montant) {
+            const arrondi = parseFloat(montant).toFixed(2);
+            const [entier, decimal] = arrondi.split('.');
+
+            // Ajouter les séparateurs de milliers
+            const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+            return `${entierFormate},${decimal}`;
+        }
+
+        // Formater tous les montants au chargement
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-montant]').forEach(el => {
+                const montant = parseFloat(el.getAttribute('data-montant'));
+                el.textContent = formatMontant(montant);
+            });
+        });
+    </script>
+</section>

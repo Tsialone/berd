@@ -1,0 +1,80 @@
+<section class="section" th:fragment="page">
+    <form class="form" method="post" th:action="@{/caisses-mvts/save}" id="caisseMvtForm">
+        <div class="row match-height">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Modification mouvement caisse</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- ID mouvement caché pour modification -->
+                        <input type="hidden" name="idCm" th:value="${caisseMvtForm.idCm}" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="caisse" class="form-label">Caisse</label>
+                                <select id="caisse" name="idCaisse" class="form-select" required>
+                                    <option value="">Sélectionner une caisse</option>
+                                    <option th:each="caisse : ${caisses}" 
+                                            th:value="${caisse.idCaisse}" 
+                                            th:text="${caisse.nom}"
+                                            th:selected="${caisseMvtForm.idCaisse == caisse.idCaisse}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="type" class="form-label">Type de mouvement</label>
+                                <select id="type" name="type" class="form-select" required>
+                                    <option value="">Sélectionner un type</option>
+                                    <option value="DEBIT" th:selected="${caisseMvtForm.type == 'DEBIT'}">Débit</option>
+                                    <option value="CREDIT" th:selected="${caisseMvtForm.type == 'CREDIT'}">Crédit</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="montant" class="form-label">Montant</label>
+                                <input type="number" id="montant" name="montant" th:value="${caisseMvtForm.montant}" 
+                                       class="form-control" placeholder="Montant" step="0.01" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="depense" class="form-label">Dépense associée (optionnel)</label>
+                                <select id="depense" name="idDepense" class="form-select">
+                                    <option value="">Aucune dépense</option>
+                                    <option th:each="depense : ${depenses}" 
+                                            th:value="${depense.idDepense}" 
+                                            th:text="${depense.description}"
+                                            th:selected="${caisseMvtForm.idDepense != null && caisseMvtForm.idDepense == depense.idDepense}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date/Heure création</label>
+                                <div class="form-control-plaintext">Information non modifiable</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <a th:href="@{/caisses-mvts/liste}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <style>
+        .form-label-sm {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</section>

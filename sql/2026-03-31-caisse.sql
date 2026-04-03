@@ -24,11 +24,7 @@ INSERT INTO caisse_categorie (libelle , created) VALUES ('wallet' , NOW ());
 INSERT INTO caisse_categorie (libelle , created) VALUES ('mvola' , NOW ());
 INSERT INTO caisse_categorie (libelle , created) VALUES ('orange money' , NOW ());
 INSERT INTO caisse_categorie (libelle , created) VALUES ('banque' , NOW ());
-INSERT INTO caisse_categorie (libelle , created) VALUES ('banque' , NOW ());
-INSERT INTO caisse_categorie (libelle , created) VALUES ('banque' , NOW ());
-INSERT INTO caisse_categorie (libelle , created) VALUES ('banque' , NOW ());
-INSERT INTO caisse_categorie (libelle , created) VALUES ('banque' , NOW ());
-INSERT INTO caisse_categorie (libelle , created) VALUES ('banque' , NOW ());
+
 
 
 

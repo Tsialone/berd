@@ -14,73 +14,73 @@
     </div>
     <div class="sidebar-menu">
       <ul class="menu">
-        <li class="sidebar-title">Menu</li>
-        <li class="sidebar-item  has-sub">
+        <li class="sidebar-title">GESTION</li>
+        
+        <!-- Dépenses -->
+        <li class="sidebar-item has-sub">
           <a href="#" class='sidebar-link'>
-            <i class="bi bi-hexagon-fill"></i>
-            <span>Depenses</span>
+            <i class="bi bi-graph-up"></i>
+            <span>Dépenses</span>
           </a>
-          <ul class="submenu ">
-            <li class="submenu-item ">
-              <a th:href="@{/depenses/liste}">Liste</a>
+          <ul class="submenu">
+            <li class="submenu-item">
+              <a th:href="@{/depenses/liste}"><i class="bi bi-list-ul"></i> Liste</a>
             </li>
-            <li class="submenu-item ">
-              <a th:href="@{/depenses/saisie}">Saisie</a>
+            <li class="submenu-item">
+              <a th:href="@{/depenses/saisie}"><i class="bi bi-plus-circle"></i> Nouvelle dépense</a>
             </li>
-            <li class="submenu-item ">
-              <a th:href="@{/depenses/stats}">Statistiques</a>
+            <li class="submenu-item">
+              <a th:href="@{/depenses/stats}"><i class="bi bi-bar-chart"></i> Statistiques</a>
             </li>
           </ul>
-
         </li>
-        <li class="sidebar-item  has-sub">
+
+        <!-- Caisses -->
+        <li class="sidebar-item has-sub">
           <a href="#" class='sidebar-link'>
-            <i class="bi bi-hexagon-fill"></i>
+            <i class="bi bi-safe2"></i>
             <span>Caisses</span>
           </a>
-          <ul class="submenu ">
-            <li class="submenu-item ">
-              <a th:href="@{/caisses/saisie}">Saisie</a>
+          <ul class="submenu">
+            <li class="submenu-item">
+              <a th:href="@{/caisses/liste}"><i class="bi bi-list-ul"></i> Liste des caisses</a>
             </li>
-              <li class="submenu-item ">
-              <a th:href="@{/caisses-mvts/saisie}">Mouvement de caisse</a>
+            <li class="submenu-item">
+              <a th:href="@{/caisses/saisie}"><i class="bi bi-plus-circle"></i> Nouvelle caisse</a>
+            </li>
+            <li class="submenu-divider"></li>
+            <li class="submenu-item">
+              <a th:href="@{/caisses-mvts/liste}"><i class="bi bi-arrow-left-right"></i> Mouvements</a>
+            </li>
+            <li class="submenu-item">
+              <a th:href="@{/caisses-mvts/saisie}"><i class="bi bi-plus-circle"></i> Nouveau mouvement</a>
             </li>
           </ul>
+        </li>
+
+        <li class="sidebar-title">CONFIGURATION</li>
         
-          
-
-        </li>
-
-        <li class="sidebar-item  has-sub">
+        <!-- Catégories -->
+        <li class="sidebar-item has-sub">
           <a href="#" class='sidebar-link'>
-            <i class="bi bi-tag-fill"></i>
-            <span>Catégories Dépenses</span>
+            <i class="bi bi-bookmark-fill"></i>
+            <span>Catégories</span>
           </a>
-          <ul class="submenu ">
-            <li class="submenu-item ">
-              <a th:href="@{/categorie-depenses/liste}">Liste</a>
+          <ul class="submenu">
+            <li class="submenu-item">
+              <a th:href="@{/categorie-depenses/liste}"><i class="bi bi-list-ul"></i> Catégories</a>
             </li>
-            <li class="submenu-item ">
-              <a th:href="@{/categorie-depenses/saisie}">Saisie</a>
+            <li class="submenu-item">
+              <a th:href="@{/categorie-depenses/saisie}"><i class="bi bi-plus-circle"></i> Nouvelle catégorie</a>
+            </li>
+            <li class="submenu-divider"></li>
+            <li class="submenu-item">
+              <a th:href="@{/categorie-depense-details/liste}"><i class="bi bi-list-ul"></i> Détails</a>
+            </li>
+            <li class="submenu-item">
+              <a th:href="@{/categorie-depense-details/saisie}"><i class="bi bi-plus-circle"></i> Nouveau détail</a>
             </li>
           </ul>
-
-        </li>
-
-        <li class="sidebar-item  has-sub">
-          <a href="#" class='sidebar-link'>
-            <i class="bi bi-tags-fill"></i>
-            <span>Détails Catégories</span>
-          </a>
-          <ul class="submenu ">
-            <li class="submenu-item ">
-              <a th:href="@{/categorie-depense-details/liste}">Liste</a>
-            </li>
-            <li class="submenu-item ">
-              <a th:href="@{/categorie-depense-details/saisie}">Saisie</a>
-            </li>
-          </ul>
-
         </li>
       </ul>
     </div>

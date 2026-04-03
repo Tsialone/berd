@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class CaisseForm {
+    private Integer idCaisse;
     private String nom;
     private String description;
 

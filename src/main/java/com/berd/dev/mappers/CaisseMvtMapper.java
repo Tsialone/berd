@@ -10,6 +10,7 @@ public class CaisseMvtMapper {
         if (caisseMvt == null) return null;
 
         CaisseMvtDto resp = new CaisseMvtDto();
+        resp.setIdCm(caisseMvt.getIdCm());
         resp.setIdCaisse(caisseMvt.getCaisse().getIdCaisse());
         resp.setNomCaisse(caisseMvt.getCaisse().getNom());
         resp.setMontant(caisseMvt.getMontant());
@@ -17,6 +18,7 @@ public class CaisseMvtMapper {
         resp.setDateHeureTransaction(caisseMvt.getCreated());
 
         if (caisseMvt.getDepense() != null) {
+            resp.setIdDepense(caisseMvt.getDepense().getIdDepense());
             resp.setNomDepense(caisseMvt.getDepense().getDescription());
         }
 

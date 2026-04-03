@@ -1,0 +1,201 @@
+<section class="section" th:fragment="page">
+  <div class="card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="card-title">Liste des mouvements</h4>
+        <a th:href="@{/caisses-mvts/saisie}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Nouveau mouvement
+        </a>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Filtres avec formulaire Spring -->
+      <form th:action="@{/caisses-mvts/liste}" method="get" class="mb-4">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 mb-2">
+            <label class="form-label-sm">Caisse</label>
+            <select name="caisseId" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Toutes les caisses</option>
+              <option th:each="caisse : ${caisses}" th:value="${caisse.idCaisse}" th:text="${caisse.nom}" th:selected="${param.caisseId != null and #strings.toString(caisse.idCaisse) == param.caisseId[0]}">
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Type</label>
+            <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Tous les types</option>
+              <option value="DEBIT" th:selected="${param.type != null and param.type[0] == 'DEBIT'}">Débit</option>
+              <option value="CREDIT" th:selected="${param.type != null and param.type[0] == 'CREDIT'}">Crédit</option>
+            </select>
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Date début</label>
+            <input type="date" name="dateDebut" class="form-control form-control-sm" th:value="${param.dateDebut}" onchange="this.form.submit()">
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Date fin</label>
+            <input type="date" name="dateFin" class="form-control form-control-sm" th:value="${param.dateFin}" onchange="this.form.submit()">
+          </div>
+          <div class="col-md-2 mb-2">
+            <label class="form-label-sm">&nbsp;</label>
+            <a th:href="@{/caisses-mvts/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+              <i class="bi bi-arrow-clockwise"></i>
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <!-- Vue desktop: Tableau -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Caisse</th>
+              <th>Type</th>
+              <th class="text-end">Montant</th>
+              <th>Dépense</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="mvt, stat : ${mouvements}" th:data-id="${mvt.idCm}">
+              <td th:text="${stat.count}">1</td>
+              <td th:text="${#temporals.format(mvt.dateHeureTransaction, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30</td>
+              <td class="fw-bold" th:text="${mvt.nomCaisse}">Caisse</td>
+              <td>
+                <span th:if="${mvt.type == 'DEBIT'}" class="badge bg-danger">
+                  <i class="bi bi-arrow-down me-1"></i>Débit
+                </span>
+                <span th:if="${mvt.type == 'CREDIT'}" class="badge bg-success">
+                  <i class="bi bi-arrow-up me-1"></i>Crédit
+                </span>
+              </td>
+              <td class="text-end fw-bold" data-montant th:attr="data-montant=${mvt.montant}" th:text="${#numbers.formatDecimal(mvt.montant ?: 0, 1, 2)}">0.00</td>
+              <td>
+                <a th:if="${mvt.idDepense != null}" th:href="@{/depenses/fiche/{id}(id=${mvt.idDepense})}" class="text-decoration-none" th:text="${mvt.nomDepense ?: '-'}">
+                  Voir
+                </a>
+                <span th:unless="${mvt.idDepense != null}" class="text-muted">-</span>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a th:href="@{/caisses-mvts/fiche/{id}(id=${mvt.idCm})}"
+                    class="btn btn-sm btn-primary" title="Voir détails">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a th:href="@{/caisses-mvts/delete/{id}(id=${mvt.idCm})}"
+                    class="btn btn-sm btn-danger" title="Supprimer"
+                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce mouvement ?')">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="fw-bold bg-light">
+              <td colspan="4" class="text-end">Total mouvement:</td>
+              <td class="text-end text-primary">
+                <span data-montant th:attr="data-montant=${totalMouvement ?: 0}"
+                  th:text="${#numbers.formatDecimal(totalMouvement ?: 0, 1, 2)}">0.00</span> Ar
+              </td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Vue mobile: Cartes -->
+      <div class="d-md-none">
+        <div class="card mb-3" th:each="mvt : ${mouvements}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-1" th:text="${mvt.nomCaisse}">Caisse</h6>
+                <small class="text-muted" th:text="${#temporals.format(mvt.dateHeureTransaction, 'dd/MM/yyyy HH:mm')}">
+                  06/03/2026 14:30
+                </small>
+              </div>
+              <span th:if="${mvt.type == 'DEBIT'}" class="badge bg-danger">Débit</span>
+              <span th:if="${mvt.type == 'CREDIT'}" class="badge bg-success">Crédit</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <div class="fw-bold" data-montant th:attr="data-montant=${mvt.montant}" th:text="${#numbers.formatDecimal(mvt.montant ?: 0, 1, 2)}">0.00</div>
+                <small class="text-muted">Montant</small>
+              </div>
+              <small th:if="${mvt.idDepense != null}" class="text-muted">Lié à dépense</small>
+            </div>
+            <div class="btn-group btn-group-sm w-100">
+              <a th:href="@{/caisses-mvts/fiche/{id}(id=${mvt.idCm})}"
+                class="btn btn-sm btn-primary flex-grow-1">
+                <i class="bi bi-eye"></i>
+              </a>
+              <button type="button" class="btn btn-sm btn-danger flex-grow-1"
+                th:onclick="'supprimerMouvement(' + ${mvt.idCm} + ')'">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message si aucun mouvement -->
+      <div th:if="${mouvements.isEmpty()}" class="text-center py-5">
+        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-2">Aucun mouvement trouvé</p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .form-label-sm {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #6c757d;
+      margin-bottom: 0.25rem;
+    }
+
+    .table th {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background-color: #f8f9fa;
+    }
+
+    .table td {
+      vertical-align: middle;
+    }
+  </style>
+
+  <script th:inline="javascript">
+
+    function supprimerMouvement(id) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce mouvement ?')) {
+        window.location.href = '/caisses-mvts/delete/' + id;
+      }
+    }
+
+    // Fonction pour formater les montants
+    function formatMontant(montant) {
+      const arrondi = parseFloat(montant).toFixed(2);
+      const [entier, decimal] = arrondi.split('.');
+
+      // Ajouter les séparateurs de milliers
+      const entierFormate = entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+      return `${entierFormate},${decimal}`;
+    }
+
+    // Formater tous les montants au chargement
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('[data-montant]').forEach(el => {
+        const montant = parseFloat(el.getAttribute('data-montant'));
+        el.textContent = formatMontant(montant);
+      });
+    });
+  </script>
+</section>

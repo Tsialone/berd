@@ -1,5 +1,8 @@
 package com.berd.dev.services;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Async;
@@ -83,23 +86,37 @@ public class CaisseMvtService {
                     .orElseThrow(() -> new IllegalArgumentException("Dépense introuvable"));
         }
 
-        CaisseMvt mvt = new CaisseMvt();
+        CaisseMvt mvt;
+        
+        // Si idCm est fourni, on modifie le mouvement existant
+        if (form.getIdCm() != null) {
+            mvt = caisseMvtRepository.findById(form.getIdCm())
+                    .orElseThrow(() -> new IllegalArgumentException("Mouvement non trouvé"));
+            
+            // Annuler l'effet de l'ancien mouvement
+            if (mvt.getDepense() != null) {
+                Depense oldDepense = mvt.getDepense();
+                oldDepense.setTotalPayer(Math.max(oldDepense.getTotalPayer() - mvt.getMontant(), 0d));
+                depenseRepository.save(oldDepense);
+            }
+            caisse.setSolde(caisse.getSolde() - (mvt.getCredit() - mvt.getDebit()));
+        } else {
+            // Sinon, créer un nouveau mouvement
+            mvt = new CaisseMvt();
+        }
 
         mvt.setCaisse(caisse);
-
         mvt.setCredit(form.getMontant());
         mvt.setDebit(0d);
 
         if (form.getType().equalsIgnoreCase("debit")) {
             mvt.setDebit(form.getMontant());
             mvt.setCredit(0d);
-
         }
+        
         if (depense != null) {
             Double totalPayer = depense.getTotalPayer() + mvt.getMontant();
-            Double totalPayerWithout = depense.getTotalPayer();
-
-            Double resteAPayer = depense.getMontantTotal()   - totalPayerWithout;
+            Double resteAPayer = depense.getMontantTotal() - depense.getTotalPayer();
 
             if (totalPayer > depense.getMontantTotal()) {
                 throw new IllegalArgumentException("Le montant dépasse le total de la dépense il vous reste: " + resteAPayer + " Ar" );
@@ -117,4 +134,64 @@ public class CaisseMvtService {
         return caisseMvtRepository.findAll();
     }
 
+    public CaisseMvt getMvtById(Integer idCm) {
+        return caisseMvtRepository.findById(idCm)
+                .orElseThrow(() -> new IllegalArgumentException("Mouvement non trouvé avec l'id: " + idCm));
+    }
+
+    public List<CaisseMvtDto> filterMouvements(Integer caisseId, String type, LocalDate dateDebut, LocalDate dateFin) {
+        List<CaisseMvt> mouvements = caisseMvtRepository.findAll();
+
+        return mouvements.stream()
+                .filter(mvt -> {
+                    if (caisseId != null) {
+                        return mvt.getCaisse().getIdCaisse().equals(caisseId);
+                    }
+                    return true;
+                })
+                .filter(mvt -> {
+                    if (type != null && !type.isEmpty()) {
+                        return mvt.getType().equalsIgnoreCase(type);
+                    }
+                    return true;
+                })
+                .filter(mvt -> {
+                    if (dateDebut != null) {
+                        LocalDateTime dateDebutDateTime = dateDebut.atStartOfDay();
+                        return mvt.getCreated().isEqual(dateDebutDateTime) || mvt.getCreated().isAfter(dateDebutDateTime);
+                    }
+                    return true;
+                })
+                .filter(mvt -> {
+                    if (dateFin != null) {
+                        LocalDateTime dateFinDateTime = dateFin.atTime(LocalTime.MAX);
+                        return mvt.getCreated().isBefore(dateFinDateTime) || mvt.getCreated().isEqual(dateFinDateTime);
+                    }
+                    return true;
+                })
+                .map(CaisseMvtMapper::toDto)
+                .toList();
+    }
+
+    public void delete(Integer idCm) {
+        CaisseMvt mvt = caisseMvtRepository.findById(idCm)
+                .orElseThrow(() -> new IllegalArgumentException("Mouvement non trouvé avec l'id: " + idCm));
+
+        // Si lié à une dépense, mettre à jour le totalPayer
+        if (mvt.getDepense() != null) {
+            Depense depense = mvt.getDepense();
+            Double newTotalPayer = depense.getTotalPayer() - mvt.getMontant();
+            depense.setTotalPayer(Math.max(newTotalPayer, 0d));
+            depenseRepository.save(depense);
+        }
+
+        // Mettre à jour le solde de la caisse
+        Caisse caisse = mvt.getCaisse();
+        Double newSolde = caisse.getSolde() - (mvt.getCredit() - mvt.getDebit());
+        caisse.setSolde(newSolde);
+        caisseRepository.save(caisse);
+
+        // Supprimer le mouvement
+        caisseMvtRepository.delete(mvt);
+    }
 }

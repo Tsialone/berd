@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CaisseMvtForm {
 
+    private Integer idCm;
 
     private Integer idCaisse;
 
@@ -17,6 +18,5 @@ public class CaisseMvtForm {
     private String type;
 
     private boolean fromDepense = false;
-
 
 }

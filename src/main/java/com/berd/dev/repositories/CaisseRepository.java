@@ -11,7 +11,7 @@ import com.berd.dev.models.Caisse;
 
 public interface CaisseRepository extends JpaRepository <Caisse , Integer> {
 
-    @Query ("SELECT DISTINCT  c  FROM caisse c    JOIN FETCH c.caisseMvts  WHERE c.idCaisse = :id_caisse")
+    @Query ("SELECT  c  FROM caisse c  LEFT JOIN FETCH c.caisseMvts  WHERE c.idCaisse = :id_caisse")
     Caisse findByIdWithCaisseMvt (@Param("id_caisse") Integer idCaisse);
 
     List<Caisse> findByUtilisateurIdUtilisateur (Integer idUtilisateur );
