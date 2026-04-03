@@ -1,11 +1,16 @@
 package com.berd.dev.controllers;
 
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.berd.dev.forms.CaisseForm;
@@ -23,8 +28,24 @@ public class CaisseController {
     private final CaisseCategoreRepository caisseCategoreRepository;
 
     @GetMapping("/liste")
-    public String liste(Model model) {
-        model.addAttribute("caisses", caisseService.getAll());
+    public String liste(
+            @RequestParam(required = false) Integer categorieId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) String search,
+            Model model) {
+        
+        var caisses = caisseService.filterCaisses(categorieId, dateDebut, dateFin, search);
+        var categories = caisseCategoreRepository.findAll();
+        
+        // Calculer le solde total
+        Double soldeTotal = caisses.stream()
+                .mapToDouble(c -> c.getSolde() != null ? c.getSolde() : 0d)
+                .sum();
+        
+        model.addAttribute("caisses", caisses);
+        model.addAttribute("categories", categories);
+        model.addAttribute("soldeTotal", soldeTotal);
         model.addAttribute("content", "pages/caisses/caisse-liste");
         return "admin-layout";
     }
@@ -73,6 +94,23 @@ public class CaisseController {
         session.removeAttribute("caisseForm");
         rd.addFlashAttribute("toastMessage", "Opération annulée");
         rd.addFlashAttribute("toastType", "info");
+        return "redirect:/caisses/liste";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable Integer id, RedirectAttributes rd) {
+        try {
+            caisseService.delete(id);
+            rd.addFlashAttribute("toastMessage", "Caisse supprimée avec succès");
+            rd.addFlashAttribute("toastType", "success");
+        } catch (IllegalArgumentException e) {
+            rd.addFlashAttribute("toastMessage", e.getMessage());
+            rd.addFlashAttribute("toastType", "warning");
+        } catch (Exception e) {
+            rd.addFlashAttribute("toastMessage", "Erreur lors de la suppression: " + e.getMessage());
+            rd.addFlashAttribute("toastType", "error");
+            e.printStackTrace();
+        }
         return "redirect:/caisses/liste";
     }
 
