@@ -55,6 +55,7 @@ public class CaisseController {
             rd.addFlashAttribute("toastMessage", "Caisse enregistrée avec succès");
             rd.addFlashAttribute("toastType", "success");
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             session.setAttribute("caisseForm", form);
             rd.addFlashAttribute("toastMessage", e.getMessage());
             rd.addFlashAttribute("toastType", "warning");
@@ -62,6 +63,7 @@ public class CaisseController {
             session.setAttribute("caisseForm", form);
             rd.addFlashAttribute("toastMessage", "Erreur lors de l'enregistrement: " + e.getMessage());
             rd.addFlashAttribute("toastType", "error");
+            e.printStackTrace();
         }
         return "redirect:/caisses/saisie";
     }

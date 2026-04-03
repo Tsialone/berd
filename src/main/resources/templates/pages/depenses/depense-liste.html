@@ -1,88 +1,81 @@
 <section class="section" th:fragment="page">
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="card-title">Liste des dépenses</h4>
-                <a th:href="@{/depenses/saisie}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Nouvelle dépense
-                </a>
+  <div class="card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="card-title">Liste des dépenses</h4>
+        <a th:href="@{/depenses/saisie}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Nouvelle dépense
+        </a>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Filtres avec formulaire Spring -->
+      <form th:action="@{/depenses/liste}" method="get" class="mb-4">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 mb-2">
+            <label class="form-label-sm">Catégorie</label>
+            <select name="categorieId" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Toutes les catégories</option>
+              <option th:each="cat : ${categories}" th:value="${cat.idCategorieDepense}" th:text="${cat.libelle}" th:selected="${param.categorieId != null and #strings.toString(cat.idCategorieDepense) == param.categorieId[0]}">
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Type</label>
+            <select name="estPrevue" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">Tous</option>
+              <option value="true" th:selected="${param.estPrevue != null and param.estPrevue[0] == 'true'}">Prévues
+              </option>
+              <option value="false" th:selected="${param.estPrevue != null and param.estPrevue[0] == 'false'}">Réalisées
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Date début</label>
+            <input type="date" name="dateDebut" class="form-control form-control-sm" th:value="${param.dateDebut}" onchange="this.form.submit()">
+          </div>
+          <div class="col-md-2 col-sm-6 mb-2">
+            <label class="form-label-sm">Date fin</label>
+            <input type="date" name="dateFin" class="form-control form-control-sm" th:value="${param.dateFin}" onchange="this.form.submit()">
+          </div>
+          <div class="col-md-2 mb-2">
+            <label class="form-label-sm">Recherche</label>
+            <div class="input-group input-group-sm">
+              <input type="text" name="search" class="form-control" th:value="${param.search}" placeholder="Description...">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+              </button>
             </div>
+          </div>
+          <div class="col-md-1 mb-2">
+            <label class="form-label-sm">&nbsp;</label>
+            <a th:href="@{/depenses/liste}" class="btn btn-secondary btn-sm d-block" title="Réinitialiser les filtres">
+              <i class="bi bi-arrow-clockwise"></i>
+            </a>
+          </div>
         </div>
-        <div class="card-body">
-            <!-- Filtres avec formulaire Spring -->
-            <form th:action="@{/depenses/liste}" method="get" class="mb-4">
-                <div class="row">
-                    <div class="col-md-3 col-sm-6 mb-2">
-                        <label class="form-label-sm">Catégorie</label>
-                        <select name="categorieId" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="">Toutes les catégories</option>
-                            <option th:each="cat : ${categories}" th:value="${cat.idCategorieDepense}"
-                                th:text="${cat.libelle}"
-                                th:selected="${param.categorieId != null and #strings.toString(cat.idCategorieDepense) == param.categorieId[0]}">
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 col-sm-6 mb-2">
-                        <label class="form-label-sm">Type</label>
-                        <select name="estPrevue" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="">Tous</option>
-                            <option value="true"
-                                th:selected="${param.estPrevue != null and param.estPrevue[0] == 'true'}">Prévues
-                            </option>
-                            <option value="false"
-                                th:selected="${param.estPrevue != null and param.estPrevue[0] == 'false'}">Réalisées
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 col-sm-6 mb-2">
-                        <label class="form-label-sm">Date début</label>
-                        <input type="date" name="dateDebut" class="form-control form-control-sm"
-                            th:value="${param.dateDebut}" onchange="this.form.submit()">
-                    </div>
-                    <div class="col-md-2 col-sm-6 mb-2">
-                        <label class="form-label-sm">Date fin</label>
-                        <input type="date" name="dateFin" class="form-control form-control-sm"
-                            th:value="${param.dateFin}" onchange="this.form.submit()">
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <label class="form-label-sm">Recherche</label>
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" th:value="${param.search}"
-                                placeholder="Description...">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="col-md-1 mb-2">
-                        <label class="form-label-sm">&nbsp;</label>
-                        <a th:href="@{/depenses/liste}" class="btn btn-secondary btn-sm d-block"
-                            title="Réinitialiser les filtres">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </a>
-                    </div>
-                </div>
-            </form>
+      </form>
 
-            <!-- Vue desktop: Tableau -->
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Date</th>
-                            <th>Catégorie</th>
-                            <th>Description</th>
-                            <th>Type</th>
-                            <th>Nb détails</th>
-                            <th class="text-end">Montant total</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="depense, stat : ${depenses}" th:data-id="${depense.idDepense}">
-                            <td th:text="${stat.index + 1 + (depenses.number * depenses.size)}">1</td>
-                            <td th:text="${#temporals.format(depense.created, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30
+      <!-- Vue desktop: Tableau -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Catégorie</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Nb détails</th>
+              <th class="text-end">Débité total</th>
+              <th class="text-end">Montant total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="depense, stat : ${depenses}" th:data-id="${depense.idDepense}">
+              <td th:text="${stat.index + 1 + (depenses.number * depenses.size)}">1</td>
+              <td th:text="${#temporals.format(depense.created, 'dd/MM/yyyy HH:mm')}">06/03/2026 14:30
                             </td>
                             <td>
                                 <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}"
@@ -99,10 +92,15 @@
                                 <span class="badge bg-light-primary"
                                     th:text="${depense.depenseDetails?.size() ?: 0}">0</span>
                             </td>
-                            <td class="text-end fw-bold">
+                             <td class="text-end fw-bold">
+                                <span data-montant th:attr="data-montant=${depense.totalPayer ?: 0}"
+                                    th:text="${#numbers.formatDecimal(depense.totalPayer ?: 0, 1, 2)}">0.00</span> Ar
+                            </td>
+                             <td class="text-end fw-bold">
                                 <span data-montant th:attr="data-montant=${depense.montantTotal ?: 0}"
                                     th:text="${#numbers.formatDecimal(depense.montantTotal ?: 0, 1, 2)}">0.00</span> Ar
                             </td>
+                           
                             <td>
                                 <div class="btn-group btn-group-sm">
                                     <a th:href="@{/depenses/fiche/{id}(id=${depense.idDepense})}"
