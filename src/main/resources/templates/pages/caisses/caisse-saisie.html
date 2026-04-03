@@ -35,6 +35,76 @@
                 </div>
             </div>
         </div>
+
+        <!-- Dernières transactions (5 dernières caisses) -->
+        <div class="row match-height mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Dernières caisses créées</h4>
+                    </div>
+
+                    <!-- Vue desktop: Tableau -->
+                    <div class="table-responsive d-none d-md-block" th:if="${lastCaisses != null && lastCaisses.size() > 0}">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom</th>
+                                    <th>Description</th>
+                                    <th>Catégorie</th>
+                                    <th class="text-end">Solde</th>
+                                    <th>Créée le</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="caisse, stat : ${lastCaisses}">
+                                    <td th:text="${stat.index + 1}">1</td>
+                                    <td th:text="${caisse.nom}">Nom</td>
+                                    <td th:text="${caisse.description ?: '-'}">Description</td>
+                                    <td th:text="${caisse.categorie}">Catégorie</td>
+                                    <td class="text-end fw-bold">
+                                        <span th:if="${caisse.solde >= 0}" class="text-success" th:text="${#numbers.formatDecimal(caisse.solde, 1, 2)} + ' Ar'">0.00</span>
+                                        <span th:if="${caisse.solde < 0}" class="text-danger" th:text="${#numbers.formatDecimal(caisse.solde, 1, 2)} + ' Ar'">0.00</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(caisse.created, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vue mobile: Cartes -->
+                    <div class="d-md-none" th:if="${lastCaisses != null && lastCaisses.size() > 0}">
+                        <div class="card mb-3" th:each="caisse : ${lastCaisses}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1" th:text="${caisse.nom}">Nom caisse</h6>
+                                        <small class="text-muted" th:text="${#temporals.format(caisse.created, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</small>
+                                    </div>
+                                </div>
+                                <p class="mb-2 text-muted" th:text="${caisse.description ?: 'Aucune description'}">Description</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted" th:text="${caisse.categorie}">Catégorie</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold">
+                                            <span th:if="${caisse.solde >= 0}" class="text-success" th:text="${#numbers.formatDecimal(caisse.solde, 1, 2)}">0.00</span>
+                                            <span th:if="${caisse.solde < 0}" class="text-danger" th:text="${#numbers.formatDecimal(caisse.solde, 1, 2)}">0.00</span> Ar
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${lastCaisses == null || lastCaisses.size() == 0}" class="card-body text-center text-muted">
+                        <p class="mb-0">Aucune caisse créée pour le moment</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 
     <style>
@@ -50,6 +120,25 @@
         .autocomplete-item { padding: 0.5rem 0.75rem; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
         .autocomplete-item:hover, .autocomplete-item.active { background: #435ebe; color: white; }
         .autocomplete-item:last-child { border-bottom: none; }
+
+        .form-label-sm {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .table th {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: #f8f9fa;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
     </style>
 
     <script th:inline="javascript">
