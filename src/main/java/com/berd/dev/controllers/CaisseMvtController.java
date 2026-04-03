@@ -39,6 +39,7 @@ public class CaisseMvtController {
     public String saisie(Model model, jakarta.servlet.http.HttpSession session) {
         model.addAttribute("caisses", caisseService.getAllDto());
         model.addAttribute("depenses", depenseService.getAllDto());
+        model.addAttribute("lastMvts", caisseMvtService.getLastTransaction(5));
 
         CaisseMvtForm form = (CaisseMvtForm) session.getAttribute("caisseMvtForm");
         if (form != null) {
@@ -79,7 +80,7 @@ public class CaisseMvtController {
         session.removeAttribute("caisseMvtForm");
         rd.addFlashAttribute("toastMessage", "Opération annulée");
         rd.addFlashAttribute("toastType", "info");
-        return "redirect:/caisses-mvts/liste";
+        return "redirect:/caisses-mvts/saisie";
     }
 
 }
