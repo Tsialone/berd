@@ -46,6 +46,9 @@ public class Depense {
     @Column (name =  "montant_total" , nullable =  false)
     private Double montantTotal =  0d; 
 
+    @Column (name =  "total_payer"  , nullable =  false)
+    private Double totalPayer = 0d;
+
     @Transient
     public void refreshMontantTotal() {
         Double resp = 0d;
