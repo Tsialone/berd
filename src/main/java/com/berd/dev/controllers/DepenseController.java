@@ -16,14 +16,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.berd.dev.forms.CaisseMvtForm;
 import com.berd.dev.forms.DepenseDetailForm;
 import com.berd.dev.forms.DepenseForm;
 import com.berd.dev.models.Depense;
+import com.berd.dev.services.CaisseMvtService;
 import com.berd.dev.services.CategorieDepenseDetailService;
 import com.berd.dev.services.CategorieDepenseService;
 import com.berd.dev.services.DepenseService;
 import com.berd.dev.services.UniteService;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -35,6 +38,21 @@ public class DepenseController {
     private final CategorieDepenseDetailService categorieDepenseDetailService;
     private final UniteService uniteService;
     private final DepenseService depenseService;
+    private final CaisseMvtService caisseMvtService;
+
+    @GetMapping("/debiter/{id}")
+    public String genereMvtCaisse(@PathVariable Integer id, RedirectAttributes rd, HttpSession session) {
+        try {
+            CaisseMvtForm form = caisseMvtService.genererByIdDepense(id);
+            session.setAttribute("caisseMvtForm", form);
+        } catch (Exception e) {
+            rd.addFlashAttribute("toastMessage", "Erreur lors de la suppression");
+            rd.addFlashAttribute("toastType", "error");
+            return "redirect:/depenses/fiche/" + id;
+            
+        }
+        return "redirect:/caisses-mvts/saisie";
+    }
 
     @GetMapping("/liste")
     public String liste(
@@ -49,7 +67,6 @@ public class DepenseController {
 
         Page<Depense> depensesPage = depenseService.getFilteredDepenses(
                 categorieId, estPrevue, dateDebut, dateFin, search, page, size);
-
 
         model.addAttribute("depenses", depensesPage);
         model.addAttribute("categories", categorieDepenseService.getAll());
@@ -189,7 +206,7 @@ public class DepenseController {
         return "admin-layout";
     }
 
-     @GetMapping("/stats")
+    @GetMapping("/stats")
     public String stats(Model model) {
         model.addAttribute("content", "pages/depenses/depense-stats");
         return "admin-layout";
