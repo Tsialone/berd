@@ -50,6 +50,15 @@ public class CaisseController {
         return "admin-layout";
     }
 
+    @GetMapping("/fiche/{id}")
+    public String fiche(@PathVariable Integer id, Model model) {
+        var caisse = caisseService.getCaisseWithMvt(id);
+        model.addAttribute("caisse", caisse);
+        model.addAttribute("mouvements", caisse.getCaisseMvts());
+        model.addAttribute("content", "pages/caisses/caisse-fiche");
+        return "admin-layout";
+    }
+
     @GetMapping("/saisie")
     public String saisie(Model model, jakarta.servlet.http.HttpSession session) {
         model.addAttribute("categories", caisseCategoreRepository.findAll());
