@@ -16,5 +16,7 @@ public class CaisseMvtForm {
 
     private String type;
 
+    private boolean fromDepense = false;
+
 
 }
