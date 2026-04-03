@@ -29,16 +29,22 @@ public class CaisseMvtService {
 
     private final SecurityService securityService;
 
-    public List<CaisseMvtDto> getLastTransaction (int nbrTransaction) {
+    public Double getTotalDebitbyIdDepense(Integer idDepense) {
+        return caisseMvtRepository.findByDepenseIdDepense(idDepense).stream()
+                .mapToDouble(CaisseMvt::getDebit)
+                .sum();
+    }
+
+    public List<CaisseMvtDto> getLastTransaction(int nbrTransaction) {
         User utilisateur = securityService.getAuthenticatedUser();
         List<CaisseMvt> filtred = caisseMvtRepository.findByIdUtilisateur(utilisateur.getIdUtilisateur()).stream()
                 .sorted((m1, m2) -> m2.getCreated().compareTo(m1.getCreated()))
                 .limit(nbrTransaction)
                 .toList();
-        return   CaisseMvtMapper.tDtos(filtred);
+        return CaisseMvtMapper.tDtos(filtred);
     }
 
-    public CaisseMvtForm genererCaisseMvtFormByIdDepense (Integer idDepense){
+    public CaisseMvtForm genererCaisseMvtFormByIdDepense(Integer idDepense) {
         Depense depense = depenseRepository.findById(idDepense)
                 .orElseThrow(() -> new IllegalArgumentException("Dépense introuvable"));
         CaisseMvtForm form = new CaisseMvtForm();
@@ -50,11 +56,13 @@ public class CaisseMvtService {
     }
 
     @Async
-    public void refreshSoldeByIdCaisse (Integer idCaisse){
-       Caisse caisse =  caisseRepository.findByIdWithCaisseMvt(idCaisse);
-       caisse.refreshSolde();;
-       caisseRepository.save(caisse);
+    public void refreshSoldeByIdCaisse(Integer idCaisse) {
+        Caisse caisse = caisseRepository.findByIdWithCaisseMvt(idCaisse);
+        caisse.refreshSolde();
+        ;
+        caisseRepository.save(caisse);
     }
+
     @Transactional
     public CaisseMvt saveByForm(CaisseMvtForm form) {
         if (form == null)
@@ -64,7 +72,7 @@ public class CaisseMvtService {
         if (form.getMontant() == null || form.getMontant() <= 0d)
             throw new IllegalArgumentException("Le montant doit être positif");
         if (form.getType() == null || form.getType().isEmpty())
-            throw new IllegalArgumentException("Le typ de mouvement doit ếtre débit ou crédit");
+            throw new IllegalArgumentException("Le type de mouvement doit ếtre débit ou crédit");
 
         Caisse caisse = caisseRepository.findById(form.getIdCaisse())
                 .orElseThrow(() -> new IllegalArgumentException("La caisse doit existé"));
@@ -81,16 +89,26 @@ public class CaisseMvtService {
 
         mvt.setCredit(form.getMontant());
         mvt.setDebit(0d);
-        
 
         if (form.getType().equalsIgnoreCase("debit")) {
             mvt.setDebit(form.getMontant());
             mvt.setCredit(0d);
 
         }
-        if (depense != null)
+        if (depense != null) {
+            Double totalPayer = depense.getTotalPayer() + mvt.getMontant();
+            Double totalPayerWithout = depense.getTotalPayer();
+
+            Double resteAPayer = depense.getMontantTotal()   - totalPayerWithout;
+
+            if (totalPayer > depense.getMontantTotal()) {
+                throw new IllegalArgumentException("Le montant dépasse le total de la dépense il vous reste: " + resteAPayer + " Ar" );
+            }
+            depense.setTotalPayer(totalPayer);
             mvt.setDepense(depense);
-        double currSolde = caisse.getSolde() +  (mvt.getCredit()  - mvt.getDebit()) ;
+        }
+
+        double currSolde = caisse.getSolde() + (mvt.getCredit() - mvt.getDebit());
         caisse.setSolde(currSolde);
         return caisseMvtRepository.save(mvt);
     }
