@@ -43,7 +43,7 @@ public class DepenseController {
     @GetMapping("/debiter/{id}")
     public String genereMvtCaisse(@PathVariable Integer id, RedirectAttributes rd, HttpSession session) {
         try {
-            CaisseMvtForm form = caisseMvtService.genererByIdDepense(id);
+            CaisseMvtForm form = caisseMvtService.genererCaisseMvtFormByIdDepense(id);
             session.setAttribute("caisseMvtForm", form);
         } catch (Exception e) {
             rd.addFlashAttribute("toastMessage", "Erreur lors de la suppression");

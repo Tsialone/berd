@@ -1,13 +1,18 @@
 package com.berd.dev.services;
 
+import java.util.List;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.berd.dev.dtos.CaisseMvtDto;
 import com.berd.dev.forms.CaisseMvtForm;
+import com.berd.dev.mappers.CaisseMvtMapper;
 import com.berd.dev.models.Caisse;
 import com.berd.dev.models.CaisseMvt;
 import com.berd.dev.models.Depense;
+import com.berd.dev.models.User;
 import com.berd.dev.repositories.CaisseMvtRepository;
 import com.berd.dev.repositories.CaisseRepository;
 import com.berd.dev.repositories.DepenseRepository;
@@ -22,6 +27,27 @@ public class CaisseMvtService {
     private final CaisseRepository caisseRepository;
     private final DepenseRepository depenseRepository;
 
+    private final SecurityService securityService;
+
+    public List<CaisseMvtDto> getLastTransaction (int nbrTransaction) {
+        User utilisateur = securityService.getAuthenticatedUser();
+        List<CaisseMvt> filtred = caisseMvtRepository.findByIdUtilisateur(utilisateur.getIdUtilisateur()).stream()
+                .sorted((m1, m2) -> m2.getCreated().compareTo(m1.getCreated()))
+                .limit(nbrTransaction)
+                .toList();
+        return   CaisseMvtMapper.tDtos(filtred);
+    }
+
+    public CaisseMvtForm genererCaisseMvtFormByIdDepense (Integer idDepense){
+        Depense depense = depenseRepository.findById(idDepense)
+                .orElseThrow(() -> new IllegalArgumentException("Dépense introuvable"));
+        CaisseMvtForm form = new CaisseMvtForm();
+        form.setIdDepense(idDepense);
+        form.setMontant(depense.getMontantTotal());
+        form.setType("DEBIT");
+        form.setFromDepense(true);
+        return form;
+    }
 
     @Async
     public void refreshSoldeByIdCaisse (Integer idCaisse){
