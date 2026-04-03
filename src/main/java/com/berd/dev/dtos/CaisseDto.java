@@ -9,6 +9,7 @@ public class CaisseDto {
     private Integer idCaisse;
     private String nom;
 
+    private Integer idCaisseCategorie;
     private String categorie;
     private LocalDateTime created;
     private Double solde;

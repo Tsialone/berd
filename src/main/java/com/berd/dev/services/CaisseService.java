@@ -56,10 +56,21 @@ public class CaisseService {
         if (form.getNom() == null || form.getNom().trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom de la caisse ne peut pas être vide");
         }
-        Caisse caisse = new Caisse();
+        
+        Caisse caisse;
+        
+        // Si idCaisse est présent, il s'agit d'une modification
+        if (form.getIdCaisse() != null) {
+            caisse = caisseRepository.findById(form.getIdCaisse())
+                    .orElseThrow(() -> new IllegalArgumentException("Caisse non trouvée avec l'id: " + form.getIdCaisse()));
+        } else {
+            // Sinon, c'est une création
+            caisse = new Caisse();
+            caisse.setUtilisateur(user);
+        }
+        
         caisse.setNom(form.getNom());
         caisse.setDescription(form.getDescription());
-        caisse.setUtilisateur(user);
         CaisseCategorie categorie = caisseCategoreRepository.findById(form.getIdCaisseCategorie())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "CaisseCategorie not found with id: " + form.getIdCaisseCategorie()));
@@ -102,6 +113,11 @@ public class CaisseService {
         return caisse;
     }
 
+    public Caisse getCaisseById(Integer idCaisse) {
+        return caisseRepository.findById(idCaisse)
+                .orElseThrow(() -> new IllegalArgumentException("Caisse non trouvée avec l'id: " + idCaisse));
+    }
+
     public List<CaisseDto> filterCaisses(Integer categorieId, LocalDate dateDebut, LocalDate dateFin, String search) {
         User utilisateur = securityService.getAuthenticatedUser();
         
@@ -113,10 +129,8 @@ public class CaisseService {
         return caisses.stream()
                 .filter(caisse -> {
                     // Filtre catégorie
-                    if (categorieId != null && !caisse.getCategorie().isEmpty()) {
-                        // Vérifier si la catégorie correspond
-                        // (à adapter selon votre structure - ici supposé que 'categorie' est un string du libellé)
-                        // Pour l'instant on filtre par ID donc on doit adapter le DTO
+                    if (categorieId != null) {
+                        return caisse.getIdCaisseCategorie().equals(categorieId);
                     }
                     return true;
                 })

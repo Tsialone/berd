@@ -1,6 +1,7 @@
 package com.berd.dev.controllers;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -13,7 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.berd.dev.dtos.CaisseDto;
+import com.berd.dev.dtos.CaisseCategorieDto;
 import com.berd.dev.forms.CaisseForm;
+import com.berd.dev.mappers.CaisseCategorieMapper;
+import com.berd.dev.models.Caisse;
 import com.berd.dev.services.CaisseService;
 import com.berd.dev.repositories.CaisseCategoreRepository;
 
@@ -57,6 +62,27 @@ public class CaisseController {
         model.addAttribute("mouvements", caisse.getCaisseMvts());
         model.addAttribute("content", "pages/caisses/caisse-fiche");
         return "admin-layout";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String edit(@PathVariable Integer id, Model model, RedirectAttributes rd) {
+        try {
+            Caisse caisse = caisseService.getCaisseById(id);
+            List<CaisseCategorieDto> categories = CaisseCategorieMapper.tDtos(caisseCategoreRepository.findAll());
+            
+            model.addAttribute("caisse", caisse);
+            model.addAttribute("categories", categories);
+            model.addAttribute("content", "pages/caisses/caisse-edit");
+            return "admin-layout";
+        } catch (IllegalArgumentException e) {
+            rd.addFlashAttribute("toastMessage", e.getMessage());
+            rd.addFlashAttribute("toastType", "warning");
+            return "redirect:/caisses/liste";
+        } catch (Exception e) {
+            rd.addFlashAttribute("toastMessage", "Erreur lors de la récupération de la caisse: " + e.getMessage());
+            rd.addFlashAttribute("toastType", "error");
+            return "redirect:/caisses/liste";
+        }
     }
 
     @GetMapping("/saisie")
