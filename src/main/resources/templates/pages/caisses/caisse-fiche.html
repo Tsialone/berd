@@ -116,7 +116,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a th:href="@{/caisse-mvt/edit/{id}(id=${mvt.idCm})}"
+                                            <a th:href="@{/caisses-mvts/edit/{id}(id=${mvt.idCm})}"
                                                class="btn btn-sm btn-warning"
                                                title="Modifier">
                                                 <i class="bi bi-pencil-square"></i>
@@ -157,7 +157,7 @@
                                     </small>
                                 </div>
                                 <div class="btn-group btn-group-sm w-100">
-                                    <a th:href="@{/caisse-mvt/edit/{id}(id=${mvt.idCm})}"
+                                    <a th:href="@{/caisses-mvts/edit/{id}(id=${mvt.idCm})}"
                                        class="btn btn-sm btn-warning flex-grow-1">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
@@ -202,7 +202,7 @@
 
         function supprimerMouvement(id) {
             if (confirm('Êtes-vous sûr de vouloir supprimer ce mouvement ?')) {
-                window.location.href = '/caisse-mvt/delete/' + id;
+                window.location.href = '/caisses-mvts/delete/' + id;
             }
         }
 
