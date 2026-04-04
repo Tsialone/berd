@@ -67,12 +67,14 @@
               <td>
                 <span class="badge bg-info" th:text="${caisse.categorie}">Catégorie</span>
               </td>
-              <td class="fw-bold" th:text="${caisse.nom}">Nom</td>
+              <td class="fw-bold">
+                  <a th:href="@{/caisses/fiche/{id}(id=${caisse.idCaisse})}" th:text="${caisse.nom}">Nom</a>
+              </td>
               <td th:text="${caisse.description ?: '-'}">Description</td>
               <td class="text-end fw-bold">
                 <span th:classappend="${caisse.solde >= 0} ? 'text-success' : 'text-danger'" 
                       data-montant th:attr="data-montant=${caisse.solde ?: 0}"
-                      th:text="${#numbers.formatDecimal(caisse.solde ?: 0, 1, 2)}">0.00</span> Ar
+                      th:text="${#numbers.formatDecimal(caisse.solde ?: 0, 1, 2)} + ' Ar'">0.00</span> <span th:classappend="${caisse.solde >= 0} ? 'text-success' : 'text-danger'" >Ar</span>
               </td>
               <td>
                 <div class="btn-group btn-group-sm">

@@ -16,4 +16,5 @@ public class CaisseMvtDto {
         private Integer idDepense;
         private String nomDepense;
         private LocalDateTime dateHeureTransaction;
+        private  String   description;
 }

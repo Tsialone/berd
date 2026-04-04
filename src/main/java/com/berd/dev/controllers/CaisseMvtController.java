@@ -127,6 +127,7 @@ public class CaisseMvtController {
     public String save(@ModelAttribute CaisseMvtForm form, RedirectAttributes rd,
             HttpSession session) {
         try {
+            System.out.println("debug form: " + form);
             caisseMvtService.saveByForm(form);
             session.removeAttribute("caisseMvtForm");
             rd.addFlashAttribute("toastMessage", "Mouvement enregistré avec succès");
