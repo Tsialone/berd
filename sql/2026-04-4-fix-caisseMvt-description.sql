@@ -1,0 +1,1 @@
+ALTER TABLE caisse_mvt ADD   COLUMN description TEXT  ;

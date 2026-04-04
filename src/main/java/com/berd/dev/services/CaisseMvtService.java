@@ -87,12 +87,12 @@ public class CaisseMvtService {
         }
 
         CaisseMvt mvt;
-        
+
         // Si idCm est fourni, on modifie le mouvement existant
         if (form.getIdCm() != null) {
             mvt = caisseMvtRepository.findById(form.getIdCm())
                     .orElseThrow(() -> new IllegalArgumentException("Mouvement non trouvé"));
-            
+
             // Annuler l'effet de l'ancien mouvement
             if (mvt.getDepense() != null) {
                 Depense oldDepense = mvt.getDepense();
@@ -113,16 +113,32 @@ public class CaisseMvtService {
             mvt.setDebit(form.getMontant());
             mvt.setCredit(0d);
         }
-        
+        String description = form.getDescription();
+
+        if (description != null && !description.trim().isEmpty()) {
+            mvt.setDescription(description);
+        } else if (form.isFromDepense() && depense != null) {
+            String desc = "Paiement pour la dépense: " + depense.getDescription() + " (Reste à payer: "
+                    + (depense.getMontantTotal() - (depense.getTotalPayer() + form.getMontant()) ) + " Ar)";
+                    System.out.println("debugggggggggg: " + depense.getMontantTotal() + " - " + depense.getTotalPayer() + " + " + form.getMontant() + " = " + (depense.getMontantTotal() - depense.getTotalPayer() + form.getMontant()));
+            mvt.setDescription(desc);
+        }
+        else {
+            mvt.setDescription(form.getType() + " de " + form.getMontant() + " Ar");
+        }
+
         if (depense != null) {
             Double totalPayer = depense.getTotalPayer() + mvt.getMontant();
             Double resteAPayer = depense.getMontantTotal() - depense.getTotalPayer();
 
             if (totalPayer > depense.getMontantTotal()) {
-                throw new IllegalArgumentException("Le montant dépasse le total de la dépense il vous reste: " + resteAPayer + " Ar" );
+                throw new IllegalArgumentException(
+                        "Le montant dépasse le total de la dépense il vous reste: " + resteAPayer + " Ar");
             }
             depense.setTotalPayer(totalPayer);
             mvt.setDepense(depense);
+          
+
         }
 
         double currSolde = caisse.getSolde() + (mvt.getCredit() - mvt.getDebit());
@@ -158,7 +174,8 @@ public class CaisseMvtService {
                 .filter(mvt -> {
                     if (dateDebut != null) {
                         LocalDateTime dateDebutDateTime = dateDebut.atStartOfDay();
-                        return mvt.getCreated().isEqual(dateDebutDateTime) || mvt.getCreated().isAfter(dateDebutDateTime);
+                        return mvt.getCreated().isEqual(dateDebutDateTime)
+                                || mvt.getCreated().isAfter(dateDebutDateTime);
                     }
                     return true;
                 })

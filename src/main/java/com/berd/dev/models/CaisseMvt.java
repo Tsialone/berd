@@ -37,7 +37,8 @@ public class CaisseMvt {
     @OneToOne
     @JoinColumn (name =  "id_depense" , nullable =  true)
     private Depense depense;
-
+    
+    private String description;
 
     private LocalDateTime created = LocalDateTime.now();
 

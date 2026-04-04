@@ -16,6 +16,8 @@ public class CaisseMvtMapper {
         resp.setMontant(caisseMvt.getMontant());
         resp.setType(caisseMvt.getType());
         resp.setDateHeureTransaction(caisseMvt.getCreated());
+        resp.setDescription(caisseMvt.getDescription());
+        
 
         if (caisseMvt.getDepense() != null) {
             resp.setIdDepense(caisseMvt.getDepense().getIdDepense());
