@@ -59,7 +59,7 @@ public class CaisseController {
     public String fiche(@PathVariable Integer id, Model model) {
         var caisse = caisseService.getCaisseWithMvt(id);
         model.addAttribute("caisse", caisse);
-        model.addAttribute("mouvements", caisse.getCaisseMvts());
+        model.addAttribute("mouvements", caisse.getCaisseMvts().stream ().sorted((m1, m2) -> m2.getCreated().compareTo(m1.getCreated())));
         model.addAttribute("content", "pages/caisses/caisse-fiche");
         return "admin-layout";
     }
